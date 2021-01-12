@@ -73,7 +73,7 @@ def cg_api_to_df(data_, keys_="value"):
     )
 
 
-def to_ts(ts_):
+def coerce_ts(ts_):
     """Convertis un ts string en Timesstamp"""
     if isinstance(ts_, str):
         return Timestamp(ts_)
@@ -96,7 +96,7 @@ def getcg_market_trades(
     df = None
 
     # créer un dictionnaire avec divers objets temporels utiles
-    date_couple = get_ts_data(to_ts(from_), to_ts(to_))["h_bins"]
+    date_couple = get_ts_data(coerce_ts(from_), coerce_ts(to_))["h_bins"]
 
     with open(fout, "w") as fd:
 
