@@ -91,7 +91,7 @@ def getcg_market_trades(
     """
     sess = pcg.CoinGeckoAPI()
     set_option("display.precision", 8)
-    fout_ = f"cg_data-{from_.strftime(STRF)}-{to_.strftime(STRF)}.csv"
+    fout_ = f"cg_data-{from_.strftime(STRF)}-{to_.strftime(STRF)}.csv" if fout_ is None else fout_
 
     df = None
 
@@ -124,7 +124,7 @@ def getcg_market_trades(
             # try to do that without loading the memory.
 
             df.to_csv(fd, header=header)
-
+    logger.warning(f"data in {fout_}")
     return df
 
 
@@ -140,7 +140,7 @@ def parse_args():
     vs_currency_dft = "usd"
     vs_currency_help = f"base Name of the currency in wich to expres the token's value (default {vs_currency_dft})"
     pause_dft = 1.2
-    pause_help = "Min time to wait between 2 requests (default {pause_dft}).  to avoid overloading the server"
+    pause_help = f"Min time to wait between 2 requests (default {pause_dft}).  to avoid overloading the server.  Coingecko limites to 600 req/m"
     startTime_dft = "2020-01-01"
     startTime_help = f"Time to start the data collection (default, {startTime_dft}).  Check time zones"
     endTime_dft = "2020-02-01"
@@ -162,7 +162,7 @@ def parse_args():
     parser.add_argument("--id_token", "-t", help=id_token_help, default=id_token_dft)
 
     return parser.parse_args()
-
+p
 
 def main_prg():
     """Run the main programme."""
@@ -181,8 +181,6 @@ def main_prg():
         "vs_currency_": args.vs_currency,
         "fout_": args.fout,
     }
-
-    logger.warning(f"Writting data to {args.fout}")
 
     _ = getcg_market_trades(**query)
     return None
