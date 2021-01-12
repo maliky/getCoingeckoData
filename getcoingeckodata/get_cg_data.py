@@ -98,7 +98,7 @@ def getcg_market_trades(
     # créer un dictionnaire avec divers objets temporels utiles
     date_couple = get_ts_data(coerce_ts(from_), coerce_ts(to_))["h_bins"]
 
-    with open(fout, "w") as fd:
+    with open(fout_, "w") as fd:
 
         for _from, _to in date_couple:
 
