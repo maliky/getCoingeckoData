@@ -162,7 +162,7 @@ def parse_args():
     parser.add_argument("--id_token", "-t", help=id_token_help, default=id_token_dft)
 
     return parser.parse_args()
-p
+
 
 def main_prg():
     """Run the main programme."""
