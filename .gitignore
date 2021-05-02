@@ -1,4 +1,4 @@
-pycoingecko
+Ressources
 *~
 build/
 __pycache__
@@ -6,7 +6,11 @@ __pycache__
 bin/*
 lib/*
 pyvenv.cfg
+# settings.py
+btxData*
 tmp*
+# a link to private keys
+kola*
 *cache
 dist/
 *egg-info/
@@ -17,5 +21,4 @@ README.org
 Data/
 setup.cfg
 .dir-locals.el
-TODO.org
 

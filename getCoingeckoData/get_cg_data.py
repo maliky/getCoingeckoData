@@ -31,6 +31,7 @@ STRF = "%Y-%m-%d__%H_%M"  # default time format for saving the data
 def get_ts_data(start_tsh_, end_tsh_, freq_="1d"):
     """
     Créer des bins avec les dates de départ et la fréquence freq
+
     Renvoi un dictionnaire avec 
     - bins, couple de date
     - h_bins, couple des dates au format humain
@@ -54,7 +55,7 @@ def market_chart_range_to_df(_dict):
     """Get a result from the coingecko API et le renvois en DataFrame."""
     _R = None
 
-    # on parcours les élèments du dictionnair
+    # on parcours les élèments du dictionnaire
     for titre, data in _dict.items():
         _R = (
             cg_api_to_df(data, titre)
@@ -67,7 +68,7 @@ def market_chart_range_to_df(_dict):
 def cg_api_to_df(data_, keys_="value"):
     "Transforme une liste avec une colonne de timestamp en dataframe"
     return DataFrame(
-        index=to_datetime(np.array(data_).T[0] * 10 ** 6).round("s"),
+        index=to_datetime(np.array(data_).T[0] * 1e6).round("s"),
         data=data_,
         columns=["ts", keys_],
     )
@@ -130,8 +131,8 @@ def getcg_market_trades(
 
 def parse_args():
     """Settings the applications's arguments and options."""
-    description = """An application to download bitmex's data with what ever resolution you need."""
-    fout_dft = "cg-data"
+    description = """An application to download Coingecko data with maximun resolution."""
+    fout_dft = "cg_data"
     fout_help = (
         f"base Name of the csv file where to save the results. (default {fout_dft}.csv)"
     )
