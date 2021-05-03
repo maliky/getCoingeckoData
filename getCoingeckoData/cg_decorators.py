@@ -3,8 +3,8 @@ from time import sleep
 
 from pandas import DataFrame, Series
 
-from inspect import signature, Parameter
-from inspect.functools import wraps
+from inspect import signature, Parameter, functools
+from functools import wraps
 
 from cg_settings.py import APISLEEP
 from cg_logging import logger
