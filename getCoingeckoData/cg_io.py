@@ -143,7 +143,7 @@ def read_local_files_in_df(
     folder = Path(folder)
 
     fullname = [
-        Path(folder).joinpath(f) for f in os.listdir(folder) if Path(f).suffix == file_ext
+        Path(folder).joinpath(f) for f in os.listdir(folder) if f.endswith(file_ext)
     ]
 
     if not fullname:

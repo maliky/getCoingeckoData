@@ -145,7 +145,7 @@ def update_histdata(
     """
     # def parse_how():
 
-    dataFiles = read_local_files_in_df(folder, file_ext)
+    dataFiles = read_local_files_in_df(folder, file_ext).values
     return update_coins_histdata(cg, dataFiles, to_date, vs_currency)
 
 
