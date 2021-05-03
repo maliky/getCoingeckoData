@@ -82,9 +82,13 @@ def load_with_ext_pkl(fname, mode) -> Union[DataFrame, Series, Dict]:
     assert Path(fname).suffix == ".pkl"
     # import ipdb; ipdb.set_trace()
 
-    with open(fname, mode) as fd:
-        _load = load(fd)
-        fd.seek(0)
+    try:
+        with open(fname, mode) as fd:
+            _load = load(fd)
+            fd.seek(0)
+    except EOFError as eofe:
+        logger.exception(f"fnae={fname}, mode={mode}, size={op.getsize(fname)} ")
+        raise eofe
     return return_df_s_dict(_load)
 
 

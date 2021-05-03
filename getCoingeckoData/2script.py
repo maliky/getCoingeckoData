@@ -61,6 +61,9 @@ def download_coinid_for_date_range(
     if exists(filename):
         if "w" in mode or "+" in mode:
             previous_df = None  # in case of update
+            if "w" in mode:
+                logger.info(f"{filename} did exist, we RENEW it.")
+
             if "+" in mode and (getsize(filename) != 0):
                 logger.info(
                     f"{filename} ({getsize(filename)}) exist already, we UPDATE it."
