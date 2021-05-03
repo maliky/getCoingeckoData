@@ -87,10 +87,9 @@ def download_coinid_for_date_range(
     return DataFrame(df)
 
 
-
 def update_coins_histdata(
     cg: CoinGeckoAPI,
-    fileins: Union[Sequence, DataFrame],
+    fileins: Sequence[Path],
     to_date: Timestamp = now_as_ts(),
     vs_currency: str = "usd",
 ) -> None:

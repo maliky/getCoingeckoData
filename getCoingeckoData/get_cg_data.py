@@ -25,7 +25,7 @@ else:
 STRF = "%Y-%m-%d__%H_%M"  # default time format for saving the data
 
 
-def market_chart_range_to_df(_dict):
+def market_chart_range_to_df(_dict:dict):
     """Get a result from the coingecko API et le renvois en DataFrame."""
     _R = None
     first_pass = True
@@ -40,7 +40,7 @@ def market_chart_range_to_df(_dict):
     return _R
 
 
-def cg_api_to_df(data_, keys_="value"):
+def cg_api_to_df(data_, keys_:str="value") ->DataFrame:
     "Transforme une liste avec une colonne de timestamp en dataframe"
     return DataFrame(
         index=to_datetime(np.array(data_).T[0] * 1e6).round("s"),
@@ -49,7 +49,7 @@ def cg_api_to_df(data_, keys_="value"):
     )
 
 
-def coerce_ts(ts_):
+def coerce_ts(ts_: Union[str, Timestamp]):
     """Convertis un ts string en Timesstamp"""
     if isinstance(ts_, str):
         return Timestamp(ts_)
