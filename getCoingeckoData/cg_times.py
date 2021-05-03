@@ -38,6 +38,13 @@ def get_ts_data(start_tsh_, end_tsh_, freq_="1d"):
         "range": ts_range,
     }
 
+def now_as_float( _round: str = "s") -> float:
+    """Return the time now, rounded as a float"""
+    return _now(as_ts=True, _round=_round)
+
+def now_as_ts(_round: str = "s") -> Timestamp:
+    """Return the time now, rounded as a Timestamp"""
+    return _now(as_ts=False, _round=_round)
 
 def _now(as_ts: bool = False, _round: str = "s") -> Union[float, Timestamp]:
     """Shortcut to return now.  set round to None to avoid rounding."""

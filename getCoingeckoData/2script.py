@@ -14,12 +14,13 @@ from cg_io import load_with_ext, save_data_with_ext, read_local_files_in_df
 from cg_lib import check_mode
 from cg_settings import DATEGENESIS, DFT_OLDAGE
 from cg_logging import logger
-from cg_times import _now, ts_extent
+from cg_times import now_as_ts, ts_extent
 from cg_api import get_coins_list, w_get_coin_market_chart_range_by_id
 
 
 # TODO: permettre l'update d'une plage de coins (eg. de bit.. à coin..)
 # revoir le type de args.folder and folder
+
 
 def download_coinid_for_date_range(
     cg: CoinGeckoAPI,
@@ -27,7 +28,7 @@ def download_coinid_for_date_range(
     folder: Path,
     file_ext: str = ".pkl",
     from_tsh: Timestamp = DATEGENESIS,
-    to_tsh: Timestamp = _now(),
+    to_tsh: Timestamp = now_as_ts(),
     vs_currency: str = "usd",
     mode: str = "bw",
 ) -> DataFrame:
@@ -61,7 +62,7 @@ def download_coinid_for_date_range(
 
             if "a" in mode:
                 previous_df = load_with_ext(filename, mode)
-                kwargs["from_tsh"] = ts_extent(previous_df)[1]
+                kwargs["from_tsh"] = ts_extent(DataFrame(previous_df))[1]
                 if kwargs["from_tsh"] is None:
                     kwargs["from_tsh"] = DATEGENESIS
                 else:
@@ -72,7 +73,7 @@ def download_coinid_for_date_range(
                 )
 
             df = w_get_coin_market_chart_range_by_id(**kwargs)
-            df = concat([previous_df, df])  # in case of an update
+            df = concat([DataFrame(previous_df), df])  # in case of an update
             save_data_with_ext(filename, df, mode)
     else:
         if "x" in mode:
@@ -80,7 +81,7 @@ def download_coinid_for_date_range(
             df = w_get_coin_market_chart_range_by_id(**kwargs)
             save_data_with_ext(filename, df, mode)
 
-    return df
+    return DataFrame(df)
 
 
 def are_valide_coin_ids(coins_ids: Sequence[str], ids: Sequence[str]) -> bool:
@@ -90,7 +91,7 @@ def are_valide_coin_ids(coins_ids: Sequence[str], ids: Sequence[str]) -> bool:
 def update_coins_histdata(
     cg: CoinGeckoAPI,
     fileins: Sequence[Path],
-    to_date: Timestamp = _now(),
+    to_date: Timestamp =now_as_ts(),
     vs_currency: str = "usd",
 ) -> None:
     """Met à jour les fileins avec des données to_date"""
@@ -110,7 +111,7 @@ def update_aged_histdata(
     cg: CoinGeckoAPI,
     folder: Path,
     file_ext: str,
-    to_date: Timestamp = _now(),
+    to_date: Timestamp = now_as_ts(),
     age: TimeDelta = DFT_OLDAGE,
     vs_currency: str = "usd",
 ):
@@ -118,7 +119,7 @@ def update_aged_histdata(
     dataFiles = read_local_files_in_df(folder, file_ext, with_details=True)
 
     def _old():
-        return dataFiles.ctime < (_now() - DFT_OLDAGE)
+        return dataFiles.ctime < (now_as_ts() - DFT_OLDAGE)
 
     agedDataFiles = dataFiles.where(_old).dropna().fullname
 
@@ -130,7 +131,7 @@ def update_histdata(
     folder: Path,
     file_ext: str,
     how: str = "all",
-    to_date: Timestamp = _now(),
+    to_date: Timestamp = now_as_ts(),
     vs_currency: str = "usd",
 ):
     """
@@ -148,7 +149,7 @@ def create_coins_histdata(
     cg: CoinGeckoAPI,
     folder: Path,
     file_ext: str = ".pkl",
-    to_date: Timestamp = _now(),
+    to_date: Timestamp = now_as_ts(),
     vs_currency: str = "usd",
 ) -> None:
     """
@@ -181,7 +182,7 @@ def renew_all_histdata(
     cg: CoinGeckoAPI,
     folder: Path,
     file_ext: str = ".pkl",
-    to_date: Timestamp = _now(),
+    to_date: Timestamp = now_as_ts(),
     vs_currency: str = "usd",
 ) -> None:
     """Rewrite all database with data up 'to_date'"""
@@ -202,7 +203,7 @@ def create_all_histdata(
     cg: CoinGeckoAPI,
     folder: Path,
     file_ext: str = ".pkl",
-    to_date: Timestamp = _now(),
+    to_date: Timestamp = now_as_ts(),
     vs_currency: str = "usd",
 ) -> None:
     """Rewrite all database with data up 'to_date'"""
@@ -329,7 +330,7 @@ def main_prg():
 
     elif args.action.upper() == "UPDATE-COINS":
         fileins = parse_coins_id_to_filename(args.coins, args.folder, args.filefmt)
-        update_coins_histdata(cg, fileins, to_date=_now(), vs_currency="usd")
+        update_coins_histdata(cg, fileins, to_date=now_as_ts(), vs_currency="usd")
     elif args.action.upper() == "RENEW-COINS":
         logger.info("Creating new data base")
         kwargs = {
