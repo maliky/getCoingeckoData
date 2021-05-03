@@ -10,7 +10,7 @@ from pycoingecko.api import CoinGeckoAPI
 from cg_decorators import w_retry, as_pd_object
 from cg_io import get_local_stem_from_folder, read_local_files_in_df
 from cg_settings import APISLEEP
-from cg_logger import logger
+from cg_logging import logger
 from cg_api import get_coins_list
 
 

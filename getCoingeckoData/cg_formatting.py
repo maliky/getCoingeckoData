@@ -6,7 +6,7 @@ from numpy import array
 
 from pandas import concat, MultiIndex, DataFrame, Series, Index, to_datetime
 
-from cg_logger import logger  #
+from cg_logging import logger  #
 from cg_exceptions import (
     LenHomogeneousException,
     TypeHomogeneousException,
