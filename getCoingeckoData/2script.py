@@ -52,7 +52,7 @@ def download_coinid_for_date_range(
 
     kwargs = {
         "cg": cg,
-        "id": coinid,
+        "id_": coinid,
         "vs_currency": vs_currency,
         "from_tsh": from_tsh,
         "to_tsh": to_tsh,
