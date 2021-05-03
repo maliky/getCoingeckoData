@@ -83,7 +83,7 @@ def load_with_ext_pkl(fname, mode) -> Union[DataFrame, Series, Dict]:
     # import ipdb; ipdb.set_trace()
 
     try:
-        fd= open(fname, mode)
+        fd= open(fname, mode='br' if 'b' in mode else 'r')
         _load = load(fd)
         fd.close()
     except EOFError as eofe:
