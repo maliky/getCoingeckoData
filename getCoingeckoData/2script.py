@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 from sys import exit
 import os
 
-from pandas import concat, Timestamp, DataFrame, TimeDelta, Series
+from pandas import concat, Timestamp, DataFrame, Timedelta, Series
 from pycoingecko.api import CoinGeckoAPI
 
 from cg_schedule import SafeScheduler
@@ -112,7 +112,7 @@ def update_aged_histdata(
     folder: Path,
     file_ext: str,
     to_date: Timestamp = now_as_ts(),
-    age: TimeDelta = DFT_OLDAGE,
+    age: Timedelta = DFT_OLDAGE,
     vs_currency: str = "usd",
 ):
     """Update data of files of from folder that are older than DFT_OLDAGE"""
