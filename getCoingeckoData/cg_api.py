@@ -3,26 +3,60 @@
 from pathlib import Path
 import os
 from time import sleep
+from math import floor
 
-from pandas import DataFrame, Series
+from pandas import DataFrame, Series, Timestamp
 
 from pycoingecko.api import CoinGeckoAPI
 
-from cg_logging import logger
-from cg_settings import APISLEEP, DATEGENESIS
-from cg_io import read_csv
-from cg_times import _now
-from cg_lib import convert_dict_to_df
-from cg_decoractors import w_retry, as_pd_object
+from cg_logging import logger  #
+from cg_settings import APISLEEP, DATEGENESIS  #
+from cg_times import _now  #
+
+from cg_io import read_csv  # log
+from cg_decoractors import w_retry, as_pd_object  # log and sett
+
+from cg_formatting import convert_dict_to_df  # log, io
 
 """Direct calls to the Coingecko API"""
+
+
+def get_historical_capitalisation_by_id(
+    cg: CoinGeckoAPI,
+    id_: str = "cardano",
+    vs_currency="btc",
+    from_ts=int(Timestamp("2008-01-01").timestamp()),
+    to_ts=None,
+    to_td_=None,
+) -> DataFrame:
+    """
+    get the capitalisation historical data for a specific range
+    from_ts : when to start
+    to_ts: when to stop
+    to_td: how long to get from the from_ts
+
+    return: a df
+    """
+    # assert to_ts is None and to_td_ is None, f"choose which to setup  to_s or to_td_ ?"
+
+    if to_ts is None:
+        # set it to now
+        # _to_td = timedelta(1).total_seconds() if to_td_ is None else to_td_
+        to_ts = floor(Timestamp.now().timestamp())
+
+    # import ipdb; ipdb.set_trace()
+
+    _data = cg.get_coin_market_chart_range_by_id(
+        id=id_, vs_currency=vs_currency, from_timestamp=from_ts, to_timestamp=to_ts,
+    )
+    return convert_dict_to_df(_data, ts_index=True)
 
 
 @w_retry()
 @as_pd_object("DataFrame")
 def w_get_coins_list(cg: CoinGeckoAPI) -> DataFrame:
     """Juste a easy wrapper around the standar api function"""
-    return cg.get_coins_list()
+    return DataFrame(cg.get_coins_list())
 
 
 def get_coins_list(
@@ -61,7 +95,7 @@ def get_coins_list(
 
         coin_list.to_csv(token_list_fn)
 
-    return coin_list.id
+    return Series(coin_list.id)
 
 
 @w_retry()
@@ -93,7 +127,7 @@ def w_get_coin_market_chart_range_by_id(
     try:
         return convert_dict_to_df(_data, ts_index=True)
     except AssertionError:
-        return _data
+        return DataFrame(_data)
 
 
 def _get_coin_market_chart_range_by_id(
@@ -123,4 +157,4 @@ def _get_coin_market_chart_range_by_id(
     try:
         return convert_dict_to_df(_data, ts_index=True)
     except AssertionError:
-        return _data
+        return DataFrame(_data)
