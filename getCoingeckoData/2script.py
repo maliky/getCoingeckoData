@@ -5,6 +5,7 @@ from typing import Sequence, List, Union
 from argparse import ArgumentParser
 from sys import exit
 import os
+from os.path import exists, getsize
 
 from pandas import concat, Timestamp, DataFrame, Timedelta, Series
 from pycoingecko.api import CoinGeckoAPI
@@ -57,13 +58,13 @@ def download_coinid_for_date_range(
         "to_tsh": to_tsh,
     }
     df = None
-    if os.path.exists(filename):
+    if exists(filename) and (getsize(filename) != 0):
         if "w" in mode:
             previous_df = None  # in case of update
-            if "w" in mode:
-                logger.info(f"{filename} exist already, we REWRITE it.")
-
             if "+" in mode:
+                logger.info(
+                    f"{filename} ({getsize(filename)}) exist already, we UPDATE it."
+                )
                 previous_df = load_with_ext(filename, mode)
                 kwargs["from_tsh"] = ts_extent(DataFrame(previous_df))[1]
                 if kwargs["from_tsh"] is None:
@@ -94,16 +95,16 @@ def update_coins_histdata(
     vs_currency: str = "usd",
 ) -> None:
     """Met à jour les fileins avec des données to_date"""
-    logger.info(f"Updating files in {fileins} to date {to_date}")
+    logger.info(f"Updating files to date {to_date}")
     for (i, fi) in enumerate(fileins):
-        print(f"{i}/{len(fileins)}:  UPDATING {fi}", end="\r")
+        print(f"{i}/{len(fileins)}", end="\r")
         _ = download_coinid_for_date_range(
             cg,
             fi.stem,
             fi.parent,
             file_ext=fi.suffix,
             to_tsh=to_date,
-            mode="bw+" if fi.suffix == ".pkl" else "w+",
+            mode="ba+" if fi.suffix == ".pkl" else "a+",
             vs_currency=vs_currency,
         )
 
@@ -167,7 +168,7 @@ def create_coins_histdata(
 
     # Create new coinids data file on disk
     for (i, coinid) in enumerate(new_coinids):
-        print(f"{i}/{len(new_coinids)}:  CREATING {coinid}", end="\r")
+        print(f"{i}/{len(new_coinids)}:  CREATING {coinid}", end="\t\t\r")
         _ = download_coinid_for_date_range(
             cg,
             coinid,
@@ -211,7 +212,7 @@ def create_all_histdata(
     """Rewrite all database with data up 'to_date'"""
     new_coin_ids = get_coins_list(cg, update_local=True)
     for (i, coinid) in enumerate(new_coin_ids):
-        print(f"{i}/{len(new_coin_ids)}:  CREATING {coinid}", end="\r")
+        print(f"{i}/{len(new_coin_ids)}:  CREATING {coinid}", end="\t\t\r")
         _ = download_coinid_for_date_range(
             cg,
             coinid,

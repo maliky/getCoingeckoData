@@ -202,8 +202,8 @@ def check_mode(mode: str, file_ext: str) -> bool:
 
     if file_ext == ".pkl":
         assert "b" in mode, err_msg()
-    if "+" in mode:
-        assert "w" in mode, err_msg()
+    # if "+" in mode:
+    #     assert "w" in mode, err_msg()
     return True
 
 

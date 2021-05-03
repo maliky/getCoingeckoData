@@ -69,22 +69,21 @@ def load_with_ext(fname: Path, mode="br") -> Union[DataFrame, Series, Dict]:
 
     Open read and close the file
     """
-    fd = open(fname, mode)
-    fd.seek(0)
     df = {
         ".pkl": load_with_ext_pkl,
         ".csv": load_with_ext_csv,
         ".json": load_with_ext_json,
-    }[fname.suffix](fd)
-    fd.close()
+    }[fname.suffix](fname, mode)
     return df
 
 
-def load_with_ext_pkl(fd) -> Union[DataFrame, Series, Dict]:
+def load_with_ext_pkl(fname, mode) -> Union[DataFrame, Series, Dict]:
     """Load a pkl file into a df, series ou dict"""
-    assert Path(fd.name).suffix == ".pkl"
-    fd.seek(0)
-    _load = load(fd)
+    assert Path(fname).suffix == ".pkl"
+    # import ipdb; ipdb.set_trace()
+
+    with open(fname, mode) as fd:
+        _load = load(fd)
     return return_df_s_dict(_load)
 
 
@@ -99,34 +98,36 @@ def return_df_s_dict(obj) -> Union[DataFrame, Series, Dict]:
         return dict(obj)
 
 
-def load_with_ext_csv(fd) -> Union[DataFrame, Series, Dict]:
+def load_with_ext_csv(fname, mode) -> Union[DataFrame, Series, Dict]:
     """
     Load a json file into a df, series ou dict
     """
-    assert Path(fd.name).suffix == ".csv"
-    df = read_csv(fd)
-    idx_cols = df.columns[:2]
-    df = df.set_index(idx_cols)
-    assert idx_cols[0] == "ts"
-    try:
-        assert idx_cols[1] == "coins"
-    except AssertionError as ae:
-        logger.exception(f"{ae} so idx_cols={idx_cols}")
-        df.columns.values[1] = "coins"
+    assert Path(fname).suffix == ".csv"
+    with open(fname, mode) as fd:
+        df = read_csv(fd)
+        idx_cols = df.columns[:2]
+        df = df.set_index(idx_cols)
+        assert idx_cols[0] == "ts"
+        try:
+            assert idx_cols[1] == "coins"
+        except AssertionError as ae:
+            logger.exception(f"{ae} so idx_cols={idx_cols}")
+            df.columns.values[1] = "coins"
 
     return return_df_s_dict(df)
 
 
-def load_with_ext_json(fd) -> Union[DataFrame, Series, dict]:
+def load_with_ext_json(fname, mode) -> Union[DataFrame, Series, dict]:
     """
     Load a json file into a df, series ou dict
     """
-    assert Path(fd.name).suffix == ".json"
-    try:
-        df = read_json(fd)
-    except Exception as e:
-        logger.exception("Need a better implemenation")
-        raise (e)
+    assert Path(fname).suffix == ".json"
+    with open(fname, mode) as fd:
+        try:
+            df = read_json(fd)
+        except Exception as e:
+            logger.exception("Need a better implemenation")
+            raise (e)
 
     return return_df_s_dict(df)
 
