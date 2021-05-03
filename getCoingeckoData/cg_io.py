@@ -84,6 +84,7 @@ def load_with_ext_pkl(fname, mode) -> Union[DataFrame, Series, Dict]:
 
     with open(fname, mode) as fd:
         _load = load(fd)
+        fd.seek(0)
     return return_df_s_dict(_load)
 
 

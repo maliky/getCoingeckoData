@@ -52,14 +52,14 @@ def download_coinid_for_date_range(
 
     kwargs = {
         "cg": cg,
-        "_id": coinid,
+        "id": coinid,
         "vs_currency": vs_currency,
         "from_tsh": from_tsh,
         "to_tsh": to_tsh,
     }
     df = None
     if exists(filename):
-        if "w" in mode:
+        if "w" in mode or "+" in mode:
             previous_df = None  # in case of update
             if "+" in mode and (getsize(filename) != 0):
                 logger.info(
