@@ -58,12 +58,12 @@ def download_coinid_for_date_range(
     }
     df = None
     if os.path.exists(filename):
-        if "a" in mode or "w" in mode:
+        if "w" in mode:
             previous_df = None  # in case of update
             if "w" in mode:
                 logger.info(f"{filename} exist already, we REWRITE it.")
 
-            if "a" in mode:
+            if "+" in mode:
                 previous_df = load_with_ext(filename, mode)
                 kwargs["from_tsh"] = ts_extent(DataFrame(previous_df))[1]
                 if kwargs["from_tsh"] is None:
@@ -103,7 +103,7 @@ def update_coins_histdata(
             fi.parent,
             file_ext=fi.suffix,
             to_tsh=to_date,
-            mode="ba" if fi.suffix == ".pkl" else "a",
+            mode="bw+" if fi.suffix == ".pkl" else "w+",
             vs_currency=vs_currency,
         )
 
