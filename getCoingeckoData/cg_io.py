@@ -130,7 +130,7 @@ def load_with_ext_json(fd) -> Union[DataFrame, Series, dict]:
     return return_df_s_dict(df)
 
 
-def read_local_files_in_df(folder=os.getcwd(), file_ext=".pkl", with_details=False):
+def read_local_files_in_df(folder=os.getcwd(), file_ext: str =".pkl", with_details:bool=False) -> DataFrame:
     """
     Renvois un df avec un max d'info sur les files du folder
     cols can be: fullname, mtime, atime, ctime, size, isdir, isfile, islink, ext, path, bname

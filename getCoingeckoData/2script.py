@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 from time import sleep
-from typing import Sequence, List
+from typing import Sequence, List, Union
 from argparse import ArgumentParser
 from sys import exit
 import os
@@ -93,12 +93,13 @@ def are_valide_coin_ids(coins_ids: Sequence[str], ids: Sequence[str]) -> bool:
 
 def update_coins_histdata(
     cg: CoinGeckoAPI,
-    fileins: Sequence[Path],
+    fileins: Union[Sequence, DataFrame],
     to_date: Timestamp = now_as_ts(),
     vs_currency: str = "usd",
 ) -> None:
     """Met à jour les fileins avec des données to_date"""
-    for fi in fileins:
+    for (i, fi) in enumerate(fileins):
+        print(f"{i}/{len(fileins)}:  UPDATING {fi}", end="\r")
         _ = download_coinid_for_date_range(
             cg,
             fi.stem,
@@ -125,7 +126,6 @@ def update_aged_histdata(
         return dataFiles.ctime < (now_as_ts() - DFT_OLDAGE)
 
     agedDataFiles = dataFiles.where(_old).dropna().fullname
-
     return update_coins_histdata(cg, agedDataFiles, to_date, vs_currency)
 
 
@@ -169,7 +169,8 @@ def create_coins_histdata(
     new_coinids = set(coins_ids) - set(local_coinids)
 
     # Create new coinids data file on disk
-    for coinid in new_coinids:
+    for (i, coinid) in enumerate(new_coinids):
+        print(f"{i}/{len(new_coinids)}:  CREATING {coinid}", end="\r")
         _ = download_coinid_for_date_range(
             cg,
             coinid,
@@ -190,7 +191,8 @@ def renew_all_histdata(
 ) -> None:
     """Rewrite all database with data up 'to_date'"""
     new_coin_ids = get_coins_list(cg, update_local=True)
-    for coinid in new_coin_ids:
+    for (i, coinid) in enumerate(new_coin_ids):
+        print(f"{i}/{len(new_coin_ids)}:  RENEWING {coinid}", end="\r")
         _ = download_coinid_for_date_range(
             cg,
             coinid,
@@ -211,7 +213,8 @@ def create_all_histdata(
 ) -> None:
     """Rewrite all database with data up 'to_date'"""
     new_coin_ids = get_coins_list(cg, update_local=True)
-    for coinid in new_coin_ids:
+    for (i, coinid) in enumerate(new_coin_ids):
+        print(f"{i}/{len(new_coin_ids)}:  CREATING {coinid}", end="\r")
         _ = download_coinid_for_date_range(
             cg,
             coinid,
@@ -376,7 +379,7 @@ def parse_plage_of_coin(coins_ids: Series, arg_coin: str):
     assert len(extremum) == 2, f"{arg_coin}"
 
     # parsing to int and sorting
-    a, b = sorted(map(int,extremum))
+    a, b = sorted(map(int, extremum))
 
     # sx = IndexSlice
     return coins_ids.loc[a:b]
