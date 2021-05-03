@@ -3,19 +3,16 @@
 from time import sleep
 
 import argparse
-import logging
 import os
 import platform  # handle os check
 import sys
 import numpy as np
 
-from pandas import DataFrame, date_range, to_datetime, Timestamp, concat, set_option
-from pathlib import Path
-
+from pandas import DataFrame, to_datetime, Timestamp, concat, set_option
 import pycoingecko as pcg
 
-logger = logging.getLogger()
-logger.setLevel("INFO")
+from cg_logging import logger
+from cg_times import get_ts_data
 
 # setting the default time zone for the system
 if platform.system() == "Linux":
@@ -27,41 +24,19 @@ else:
 
 STRF = "%Y-%m-%d__%H_%M"  # default time format for saving the data
 
-# les dates
-def get_ts_data(start_tsh_, end_tsh_, freq_="1d"):
-    """
-    Créer des bins avec les dates de départ et la fréquence freq
-
-    Renvoi un dictionnaire avec 
-    - bins, couple de date
-    - h_bins, couple des dates au format humain
-    - range, une liste de date de start_tsh à end_tsh
-    espacé par freq_
-    - h_range: comme au dessus mais avec les dates humaines
-    """
-    # créer deux ensembles de date de start à end
-    tsh_range = date_range(start_tsh_, end_tsh_, freq=freq_)
-    ts_range = list(map(lambda ts: ts.timestamp() * 10 ** 6, tsh_range))
-
-    return {
-        "bins": list(zip(ts_range[:-1], ts_range[1:])),
-        "h_bins": list(zip(tsh_range[:-1], tsh_range[1:])),
-        "h_range": tsh_range,
-        "range": ts_range,
-    }
-
 
 def market_chart_range_to_df(_dict):
     """Get a result from the coingecko API et le renvois en DataFrame."""
     _R = None
-
+    first_pass = True
     # on parcours les élèments du dictionnaire
     for titre, data in _dict.items():
-        _R = (
-            cg_api_to_df(data, titre)
-            if _R is None
-            else concat([_R, cg_api_to_df(data, titre).drop("ts", axis=1)], axis=1)
-        )
+        if first_pass:
+            _R = cg_api_to_df(data, titre)
+            first_pass = not first_pass
+        else:
+            _R = concat([_R, cg_api_to_df(data, titre).drop("ts", axis=1)], axis=1)
+
     return _R
 
 
@@ -92,10 +67,14 @@ def getcg_market_trades(
     """
     sess = pcg.CoinGeckoAPI()
     set_option("display.precision", 8)
-    fout_ = f"cg_data-{from_.strftime(STRF)}-{to_.strftime(STRF)}.csv" if fout_ is None else fout_
+    fout_ = (
+        f"cg_data-{from_.strftime(STRF)}-{to_.strftime(STRF)}.csv"
+        if fout_ is None
+        else fout_
+    )
 
     df = None
-
+    first_pass = True
     # créer un dictionnaire avec divers objets temporels utiles
     date_couple = get_ts_data(coerce_ts(from_), coerce_ts(to_))["h_bins"]
 
@@ -112,9 +91,10 @@ def getcg_market_trades(
             # change the dictionnary returned by the API in a DataFrame
             _tmp = market_chart_range_to_df(_tmp)
             # et concatène le résultat dans une grande dataFrame
-            if df is None:
+            if first_pass:
                 df = _tmp
                 header = True
+                first_pass = not first_pass
             else:
                 df = concat([df, _tmp], axis=0)
                 header = False
@@ -131,7 +111,9 @@ def getcg_market_trades(
 
 def parse_args():
     """Settings the applications's arguments and options."""
-    description = """An application to download Coingecko data with maximun resolution."""
+    description = (
+        """An application to download Coingecko data with maximun resolution."""
+    )
     fout_dft = "cg_data"
     fout_help = (
         f"base Name of the csv file where to save the results. (default {fout_dft}.csv)"
