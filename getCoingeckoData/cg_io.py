@@ -130,15 +130,20 @@ def load_with_ext_json(fd) -> Union[DataFrame, Series, dict]:
     return return_df_s_dict(df)
 
 
-def read_local_files_in_df(folder=os.getcwd(), file_ext: str =".pkl", with_details:bool=False) -> DataFrame:
+def read_local_files_in_df(
+    folder=os.getcwd(), file_ext: str = ".pkl", with_details: bool = False
+) -> DataFrame:
     """
     Renvois un df avec un max d'info sur les files du folder
     cols can be: fullname, mtime, atime, ctime, size, isdir, isfile, islink, ext, path, bname
     """
-    logger.info(f'Reading {file_ext} files in {folder}')
+    logger.info(f"Reading {file_ext} files in {folder}")
+
+    # making sure all string are coerce to Path
+    folder = Path(folder)
 
     fullname = [
-        Path("/".join([folder, f])) for f in os.listdir(folder) if f.endswith(file_ext)
+        Path(folder).joinpath(f) for f in os.listdir(folder) if Path(f).suffix == file_ext
     ]
 
     if not fullname:
