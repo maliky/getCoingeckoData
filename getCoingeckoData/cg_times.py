@@ -66,6 +66,9 @@ def ts_extent(ref_: Union[Series, DataFrame], as_unix_ts_=False):
     if a dataframe is passed to ref_ return the extent of its index
     if as_unix_ts is True, suppors the iterable avec a timestamp method
     """
+    if len(ref_) == 0:
+        return None, None
+    
     _idx = ref_.index if isinstance(ref_, (DataFrame, Series)) else ref_
 
     tsh = _idx[0], _idx[-1]
