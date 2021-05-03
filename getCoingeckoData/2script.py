@@ -9,7 +9,7 @@ import os
 from pandas import concat, Timestamp, DataFrame, TimeDelta, Series
 from pycoingecko.api import CoinGeckoAPI
 
-from cg_myschedule import SafeScheduler
+from cg_schedule import SafeScheduler
 from cg_io import load_with_ext, save_data_with_ext, read_local_files_in_df
 from cg_lib import check_mode
 from cg_settings import DATEGENESIS, DFT_OLDAGE
