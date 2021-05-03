@@ -7,7 +7,6 @@ __pycache__
 bin/*
 lib/*
 pyvenv.cfg
-# settings.py
 btxData*
 tmp*
 # a link to private keys
@@ -17,8 +16,7 @@ dist/
 *egg-info/
 README.org
 *csv
-*ipynb
-*.ipynb*
+*.ipynb
 Data/
 setup.cfg
 .dir-locals.el
