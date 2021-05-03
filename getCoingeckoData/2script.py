@@ -97,7 +97,7 @@ def update_coins_histdata(
     """Met à jour les fileins avec des données to_date"""
     logger.info(f"Updating files to date {to_date}")
     for (i, fi) in enumerate(fileins):
-        print(f"{i}/{len(fileins)}", end="\r")
+        logger.info(f"{i}/{len(fileins)}: {fi}")
         _ = download_coinid_for_date_range(
             cg,
             fi.stem,
@@ -168,7 +168,7 @@ def create_coins_histdata(
 
     # Create new coinids data file on disk
     for (i, coinid) in enumerate(new_coinids):
-        print(f"{i}/{len(new_coinids)}:  CREATING {coinid}", end="\t\t\r")
+        logger.info(f"{i}/{len(new_coinids)}:  CREATING {coinid}")
         _ = download_coinid_for_date_range(
             cg,
             coinid,
@@ -190,7 +190,7 @@ def renew_all_histdata(
     """Rewrite all database with data up 'to_date'"""
     new_coin_ids = get_coins_list(cg, update_local=True)
     for (i, coinid) in enumerate(new_coin_ids):
-        print(f"{i}/{len(new_coin_ids)}:  RENEWING {coinid}", end="\r")
+        logger.info(f"{i}/{len(new_coin_ids)}:  RENEWING {coinid}")
         _ = download_coinid_for_date_range(
             cg,
             coinid,
@@ -212,7 +212,7 @@ def create_all_histdata(
     """Rewrite all database with data up 'to_date'"""
     new_coin_ids = get_coins_list(cg, update_local=True)
     for (i, coinid) in enumerate(new_coin_ids):
-        print(f"{i}/{len(new_coin_ids)}:  CREATING {coinid}", end="\t\t\r")
+        logger.info(f"{i}/{len(new_coin_ids)}:  CREATING {coinid}")
         _ = download_coinid_for_date_range(
             cg,
             coinid,
