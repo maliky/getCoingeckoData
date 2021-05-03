@@ -98,6 +98,7 @@ def update_coins_histdata(
     vs_currency: str = "usd",
 ) -> None:
     """Met à jour les fileins avec des données to_date"""
+    logger.info(f"Updating files in {fileins] to date {to_date}")
     for (i, fi) in enumerate(fileins):
         print(f"{i}/{len(fileins)}:  UPDATING {fi}", end="\r")
         _ = download_coinid_for_date_range(
@@ -145,7 +146,8 @@ def update_histdata(
     # def parse_how():
 
     dataFiles = read_local_files_in_df(folder, file_ext)
-    return update_coins_histdata(cg, dataFiles, to_date, vs_currency)
+    update = update_coins_histdata(cg, dataFiles, to_date, vs_currency)
+    return update
 
 
 def create_coins_histdata(
