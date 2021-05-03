@@ -6,7 +6,7 @@ from pandas import DataFrame, Series
 from inspect import signature, Parameter, functools
 from functools import wraps
 
-from cg_settings.py import APISLEEP
+from cg_settings import APISLEEP
 from cg_logging import logger
 
 """cg_decorators.py"""
