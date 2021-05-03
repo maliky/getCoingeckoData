@@ -87,9 +87,6 @@ def download_coinid_for_date_range(
     return DataFrame(df)
 
 
-def are_valide_coin_ids(coins_ids: Sequence[str], ids: Sequence[str]) -> bool:
-    """check that ids are coins ids"""
-
 
 def update_coins_histdata(
     cg: CoinGeckoAPI,
@@ -145,7 +142,7 @@ def update_histdata(
     """
     # def parse_how():
 
-    dataFiles = read_local_files_in_df(folder, file_ext).values
+    dataFiles = read_local_files_in_df(folder, file_ext).fullname
     return update_coins_histdata(cg, dataFiles, to_date, vs_currency)
 
 
