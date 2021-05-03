@@ -83,10 +83,12 @@ def load_with_ext_pkl(fname, mode) -> Union[DataFrame, Series, Dict]:
     # import ipdb; ipdb.set_trace()
 
     try:
-        with open(fname, mode) as fd:
-            _load = load(fd)
+        fd= open(fname, mode)
+        _load = load(fd)
+        fd.close()
     except EOFError as eofe:
         logger.exception(f"fname={fname}, mode={mode}, tell={fd.tell()}, size={op.getsize(fname)} ")
+        fd.close()
         raise eofe
     return return_df_s_dict(_load)
 
