@@ -15,7 +15,7 @@ from cg_times import _now  #
 
 from cg_io import read_csv  # log
 from cg_decorators import w_retry, as_pd_object  # log and set
-from cg_formatting import convert_dict_to_df  # log, io, lib.. -> api
+from cg_lib import convert_dict_to_df  
 
 """Direct calls to the Coingecko API"""
 

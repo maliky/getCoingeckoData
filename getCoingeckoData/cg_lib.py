@@ -17,7 +17,6 @@ from cg_exceptions import (
     ShapeHomogeneousException,
 )  #
 
-
 from cg_api import get_coins_list  # log, set, time,
 
 """cg_lib.py: Fonctions pour faciliter l'accès au données pour leur formattage"""
@@ -327,4 +326,3 @@ def format_data(D: Dict, logLevel=None):
             raise e
 
     return E
-
