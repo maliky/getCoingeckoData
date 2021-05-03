@@ -73,7 +73,7 @@ def add_most_populare_categories(market_cap: DataFrame) -> DataFrame:
         except Exception as e:
             print(i, coin, end=" ")
             raise (e)
-    return _market_cap
+    return DataFrame(_market_cap)
 
 
 def get_coin_ranking(

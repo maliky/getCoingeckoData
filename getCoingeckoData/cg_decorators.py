@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from time import sleep
-
+from collections import OrderedDict
 from pandas import DataFrame, Series
 
 from inspect import signature, Parameter, functools
@@ -48,7 +48,7 @@ def as_pd_object(_type: str):
         and add a ligne in documentation
         """
         func_sig = signature(func)
-        func_sig_params = list(func_sig.parameters).copy()
+        func_sig_params = OrderedDict(func_sig.parameters).copy()
         if arg_name in func_sig_params:
             logger.warning(
                 f"We are modifing {arg_name}, an existing argument of func={func}."

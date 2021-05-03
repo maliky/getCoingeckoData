@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Union
+from typing import Union, Optional
 from pandas import Timestamp, Series, DataFrame, date_range, Timedelta
 from math import floor
 
@@ -9,7 +9,7 @@ from math import floor
 def get_recent_data(df: DataFrame, delta=Timedelta(30, "d")) -> DataFrame:
     """On suppose que l'index est un timestmap index"""
     most_recent_date = df.index[-1]
-    return df.loc[(most_recent_date - delta) :]
+    return DataFrame(df.loc[(most_recent_date - delta) :])
 
 
 def get_ts_data(start_tsh_, end_tsh_, freq_="1d"):
@@ -40,11 +40,16 @@ def get_ts_data(start_tsh_, end_tsh_, freq_="1d"):
 
 def now_as_float( _round: str = "s") -> float:
     """Return the time now, rounded as a float"""
-    return _now(as_ts=True, _round=_round)
+    _now_ = Timestamp.now()
+    if round is not None:
+        _now_ = _now_.round(_round)
+
+    return floor(_now_.timestamp())
+
 
 def now_as_ts(_round: str = "s") -> Timestamp:
     """Return the time now, rounded as a Timestamp"""
-    return _now(as_ts=False, _round=_round)
+    return Timestamp(_now(as_ts=False, _round=_round))
 
 def _now(as_ts: bool = False, _round: str = "s") -> Union[float, Timestamp]:
     """Shortcut to return now.  set round to None to avoid rounding."""

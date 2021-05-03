@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from pickle import dump, load
 from time import sleep
+from typing import Dict
 import os.path
 from pathlib import Path
 
@@ -11,7 +12,7 @@ from cg_decorators import w_retry, as_pd_object
 from cg_io import get_local_stem_from_folder, read_local_files_in_df
 from cg_settings import APISLEEP
 from cg_logging import logger
-from cg_api import get_coins_list
+from cg_lib import get_coins_list
 
 
 @w_retry()
@@ -22,11 +23,11 @@ def w_get_coin_by_id(
     """Juste a easy wrapper around the standar api function"""
     coin_by_id = cg.get_coin_by_id(_id, **kwargs)
     sleep(APISLEEP())
-    if not save:
-        return coin_by_id
-    else:
+    if save:
         with open(f"./data/Coins_infos/{_id}", "bw") as fd:
             dump(coin_by_id, fd)
+
+    return Series(coin_by_id)
 
 
 @as_pd_object("DataFrame")
@@ -35,7 +36,7 @@ def download_coins_infos(
     info_folder: str = "./data/Coins_infos",
     to_save: bool = True,
     overwrite: bool = False,
-) -> DataFrame:
+) -> Dict:
     """Télécharge les infos des tokens dans un dossier"""
 
     # récupère les noms des coins

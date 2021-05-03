@@ -8,7 +8,7 @@ import os.path as op
 from pickle import dump, load
 from pandas import DataFrame, Series, read_csv, read_json, to_datetime
 
-from cg_logging import logger #
+from cg_logging import logger  #
 
 
 def save_data(obj, fileout, logLevel=None):
@@ -81,11 +81,21 @@ def load_with_ext(fname: Path, mode="br") -> Union[DataFrame, Series, Dict]:
 
 
 def load_with_ext_pkl(fd) -> Union[DataFrame, Series, Dict]:
-    """
-    Load a pkl file into a df, series ou dict
-    """
+    """Load a pkl file into a df, series ou dict"""
     assert Path(fd.name).suffix == ".pkl"
-    return load(fd)
+    _load = load(fd)
+    return return_df_s_dict(_load)
+
+
+def return_df_s_dict(obj) -> Union[DataFrame, Series, Dict]:
+    """Make sure the object is of type df, serie or dict"""
+    assert isinstance(obj, (DataFrame, Series, dict)), f"type(obj)={type(obj)}"
+    if type(obj) is DataFrame:
+        return DataFrame(obj)
+    if type(obj) is Series:
+        return Series(obj)
+    else:
+        return dict(obj)
 
 
 def load_with_ext_csv(fd) -> Union[DataFrame, Series, Dict]:
@@ -103,7 +113,7 @@ def load_with_ext_csv(fd) -> Union[DataFrame, Series, Dict]:
         logger.exception(f"{ae} so idx_cols={idx_cols}")
         df.columns.values[1] = "coins"
 
-    return df
+    return return_df_s_dict(df)
 
 
 def load_with_ext_json(fd) -> Union[DataFrame, Series, dict]:
@@ -117,7 +127,7 @@ def load_with_ext_json(fd) -> Union[DataFrame, Series, dict]:
         logger.exception("Need a better implemenation")
         raise (e)
 
-    return df
+    return return_df_s_dict(df)
 
 
 def read_local_files_in_df(folder=os.getcwd(), file_ext=".pkl", with_details=False):

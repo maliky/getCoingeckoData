@@ -374,7 +374,9 @@ def parse_plage_of_coin(coins_ids: Series, arg_coin: str):
     """ given a string in the form a-d get all coin in between in alphabetical order"""
     extremum = arg_coin.split("-")
     assert len(extremum) == 2, f"{arg_coin}"
-    a, b = sorted(extremum)
+
+    # parsing to int and sorting
+    a, b = sorted(map(int,extremum))
 
     # sx = IndexSlice
     return coins_ids.loc[a:b]

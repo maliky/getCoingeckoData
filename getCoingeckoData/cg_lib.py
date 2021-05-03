@@ -10,7 +10,6 @@ from numpy import array
 from pandas import concat, MultiIndex, DataFrame, Series, Index, to_datetime, Timestamp
 from pycoingecko.api import CoinGeckoAPI
 
-
 from cg_logging import logger  #
 from cg_times import _now  #
 from cg_settings import APISLEEP, DATEGENESIS  #
@@ -24,7 +23,6 @@ from cg_io import read_csv  # log
 from cg_decorators import w_retry, as_pd_object  # log and set
 
 """cg_lib.py: Fonctions pour faciliter l'accès au données pour leur formattage"""
-
 
 def get_historical_capitalisation_by_id(
     cg: CoinGeckoAPI,
@@ -304,7 +302,9 @@ def harmonise_dict_of_list(dict_: dict, as_df: bool = True):
     """
     assert set(dict_.keys()) == set(["prices", "market_caps", "total_volumes"])
 
-    biggest_index_label = Series(dict_).apply(len).sort_values().index[-1]
+    entries = Series(dict_).apply(len)
+    sorted_entries = entries.sort_values(axis=0)
+    biggest_index_label = sorted_entries.index[-1]
     biggest_index_ts = array(dict_[biggest_index_label])[:, 0]
 
     _df = DataFrame(index=biggest_index_ts)
