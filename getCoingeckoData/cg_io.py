@@ -70,7 +70,7 @@ def load_with_ext(fname: Path, mode="br") -> Union[DataFrame, Series, Dict]:
     Open read and close the file
     """
     fd = open(fname, mode)
-
+    fd.seek(0)
     df = {
         ".pkl": load_with_ext_pkl,
         ".csv": load_with_ext_csv,
@@ -83,6 +83,7 @@ def load_with_ext(fname: Path, mode="br") -> Union[DataFrame, Series, Dict]:
 def load_with_ext_pkl(fd) -> Union[DataFrame, Series, Dict]:
     """Load a pkl file into a df, series ou dict"""
     assert Path(fd.name).suffix == ".pkl"
+    fd.seek(0)
     _load = load(fd)
     return return_df_s_dict(_load)
 
