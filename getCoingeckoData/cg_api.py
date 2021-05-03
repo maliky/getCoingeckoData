@@ -15,10 +15,81 @@ from cg_times import _now  #
 
 from cg_io import read_csv  # log
 from cg_decorators import w_retry, as_pd_object  # log and set
-from cg_lib import convert_dict_to_df  
+
 
 """Direct calls to the Coingecko API"""
 
+def convert_dict_to_df(dict_: dict, ts_index: bool = True, taille=None) -> DataFrame:
+    """
+    Convertis un dictionnaire dont les entrées ont toutes la même shape et dont
+    la première ligne est un ts.
+    """
+    try:
+
+        dict_homogenous(dict_, taille=taille)
+    except AssertionError as ae:
+        raise ae
+    except TypeHomogeneousException as the:
+        raise the
+    except LenHomogeneousException as lhe:
+        logger.exception(f"Handling {lhe}")
+        dict_ = harmonise_dict_of_list(dict_, as_df=False)
+        pass
+    except ShapeHomogeneousException as she:
+        raise she
+
+    # if we have empty or none entries
+    if dict_test_entries(dict_, test="empty-none") != 0:
+        return DataFrame(None)
+
+    if dict_test_entries(dict_, test="const") != 0:
+        return DataFrame(Series(dict_))
+
+    df = DataFrame(None)
+    first_pass = True
+
+    for k in dict_:
+        _data = array(dict_[k]).T
+        if first_pass:
+            # Initialisation avec  ts index
+            df = DataFrame(index=_data[0], data=_data[1], columns=[k])
+            first_pass = False
+        else:
+            df = concat([df, Series(index=_data[0], data=_data[1], name=k)], axis=1)
+
+    def _to_ts_dt(ts):
+        return ts.round("s")
+
+    if ts_index:
+        _index = Index(map(_to_ts_dt, to_datetime(df.index.values * 1e6)), name="ts")
+        df = df.set_index(_index)
+
+    df.columns.name = "---"
+    return df
+
+
+def format_data(D: Dict, logLevel=None):
+    """Enlève les colonnes non nécessaires"""
+    if logLevel is not None:
+        getattr(logger, logLevel)(f"Format data for {len(D)} objects in {type(D)}")
+
+    E = {}
+    for i, coinid in enumerate(D):
+        print(f"{i}/{len(D)} trimming...", end="\r")
+        try:
+            if len(D[coinid]):
+                E[coinid] = D[coinid].drop(["total_volumes", "prices"], axis=1)
+                E[coinid].columns = MultiIndex.from_product(
+                    [[coinid], E[coinid].columns]
+                )
+                E[coinid] = E[coinid].droplevel(1, axis=1)
+                E[coinid].columns.name = "market_caps"
+
+        except Exception as e:
+            print(coinid)
+            raise e
+
+    return E
 
 def get_historical_capitalisation_by_id(
     cg: CoinGeckoAPI,
