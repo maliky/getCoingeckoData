@@ -9,14 +9,18 @@ import os
 from pandas import concat, Timestamp, DataFrame, Timedelta, Series
 from pycoingecko.api import CoinGeckoAPI
 
-from cg_logging import logger #
-from cg_times import now_as_ts, ts_extent #
-from cg_settings import DATEGENESIS, DFT_OLDAGE #
-from cg_scheduling import SafeScheduler # log
-from cg_io import load_with_ext, save_data_with_ext, read_local_files_in_df # log
+from cg_logging import logger  #
+from cg_times import now_as_ts, ts_extent  #
+from cg_settings import DATEGENESIS, DFT_OLDAGE  #
+from cg_scheduling import SafeScheduler  # log
+from cg_io import load_with_ext, save_data_with_ext, read_local_files_in_df  # log
 
-from cg_lib import check_mode # log, set, time, api
-from cg_api import get_coins_list, w_get_coin_market_chart_range_by_id  # log, set, time, io, deco, fmt
+from cg_lib import (
+    check_mode,
+    get_coins_list,
+    w_get_coin_market_chart_range_by_id,
+)  # log, set, time, io, deco, fmt
+
 # TODO: permettre l'update d'une plage de coins (eg. de bit.. à coin..)
 # revoir le type de args.folder and folder
 
@@ -90,7 +94,7 @@ def are_valide_coin_ids(coins_ids: Sequence[str], ids: Sequence[str]) -> bool:
 def update_coins_histdata(
     cg: CoinGeckoAPI,
     fileins: Sequence[Path],
-    to_date: Timestamp =now_as_ts(),
+    to_date: Timestamp = now_as_ts(),
     vs_currency: str = "usd",
 ) -> None:
     """Met à jour les fileins avec des données to_date"""
