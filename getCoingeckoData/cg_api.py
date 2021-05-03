@@ -14,9 +14,8 @@ from cg_settings import APISLEEP, DATEGENESIS  #
 from cg_times import _now  #
 
 from cg_io import read_csv  # log
-from cg_decorators import w_retry, as_pd_object  # log and sett
-
-from cg_formatting import convert_dict_to_df  # log, io
+from cg_decorators import w_retry, as_pd_object  # log and set
+from cg_formatting import convert_dict_to_df  # log, io, lib.. -> api
 
 """Direct calls to the Coingecko API"""
 
