@@ -135,6 +135,7 @@ def read_local_files_in_df(folder=os.getcwd(), file_ext: str =".pkl", with_detai
     Renvois un df avec un max d'info sur les files du folder
     cols can be: fullname, mtime, atime, ctime, size, isdir, isfile, islink, ext, path, bname
     """
+    logger.info(f'Reading {file_ext} files in {folder}')
 
     fullname = [
         Path("/".join([folder, f])) for f in os.listdir(folder) if f.endswith(file_ext)
