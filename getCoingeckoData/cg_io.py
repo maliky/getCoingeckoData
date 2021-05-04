@@ -62,7 +62,7 @@ def save_data_with_json(df, fd):
     df.to_json(fd)
 
 
-def load_with_ext(fname: Path, mode="br") -> Union[DataFrame, Series, Dict]:
+def load_with_ext(fname: Path, mode="br", logLevel=None) -> Union[DataFrame, Series, Dict]:
     """
     Charge en mémoire un fichier en utilisant son extension
     pour savoir quelle méthode utiliser pour le lire.
@@ -74,6 +74,10 @@ def load_with_ext(fname: Path, mode="br") -> Union[DataFrame, Series, Dict]:
         ".csv": load_with_ext_csv,
         ".json": load_with_ext_json,
     }[fname.suffix](fname, mode)
+
+    if logLevel is not None:
+        getattr(logger, logLevel)(f'LOADED SUCCESSFULLY a {type(df)} from {fname}')
+
     return df
 
 

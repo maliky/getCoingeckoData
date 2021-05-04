@@ -66,9 +66,9 @@ def download_coinid_for_date_range(
 
             if "+" in mode and (getsize(filename) != 0):
                 logger.info(
-                    f"{filename} ({getsize(filename)}) exist already, we UPDATE it."
+                    f"File of size {getsize(filename)} for **{filename.stem}** exists."
                 )
-                previous_df = load_with_ext(filename, mode)
+                previous_df = load_with_ext(filename, mode, 'INFO')
                 kwargs["from_ts"] = ts_extent(DataFrame(previous_df))[1]
                 if kwargs["from_ts"] is None:
                     kwargs["from_ts"] = DATEGENESIS
@@ -76,7 +76,7 @@ def download_coinid_for_date_range(
                     assert kwargs["from_ts"] < to_tsh
 
                 logger.info(
-                    f"we UPDATE {filename} from {kwargs['from_ts']} to {to_tsh}"
+                    f"_UPDATE_ {filename} from {kwargs['from_ts']} to {to_tsh}"
                 )
 
             df = w_get_coin_market_chart_range_by_id(**kwargs)
