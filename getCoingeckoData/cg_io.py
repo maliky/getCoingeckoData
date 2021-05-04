@@ -44,7 +44,7 @@ def save_data_with_ext(filename, df, mode, logLevel=None):
     }[filename.suffix](df, fd)
     fd.close()
     if logLevel is not None:
-        getattr(logger, logLevel.lower())(f"WROTE {filname} with SUCCES.")
+        getattr(logger, logLevel.lower())(f"WROTE ({mode}) {filname} with SUCCESS!")
     return True
 
 

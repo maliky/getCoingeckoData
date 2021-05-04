@@ -81,7 +81,7 @@ def download_coinid_for_date_range(
 
             df = w_get_coin_market_chart_range_by_id(**kwargs)
             df = concat([DataFrame(previous_df), df])  # in case of an update
-            save_data_with_ext(filename, df, mode)
+            save_data_with_ext(filename, df, mode, 'info')
     else:
         if "x" in mode:
             logger.info(f"{filename} did not exist already, we CREATE it.")
