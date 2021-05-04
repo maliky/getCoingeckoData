@@ -80,7 +80,7 @@ def load_with_ext(
 
     if logLevel is not None:
         getattr(logger, logLevel.lower())(
-            f"LOADED SUCCESSFULLY a {type(df)} from {fname}"
+            f"LOADED a {type(df)} (size {len(df)}) from {fname}"
         )
 
     return df
