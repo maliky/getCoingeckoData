@@ -80,7 +80,7 @@ def download_coinid_for_date_range(
                 mode = mode.replace("a", "w")
 
             # we get the data from API
-            _df = w_get_coin_market_chart_range_by_id(**kwargs)
+            _df = DataFrame(w_get_coin_market_chart_range_by_id(**kwargs))
 
             # add it to previous if we do an update
             df = concat([previous_df, _df])
