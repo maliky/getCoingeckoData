@@ -61,7 +61,7 @@ def download_coinid_for_date_range(
     if exists(filename):
         if "w" in mode or "+" in mode:
             previous_df = DataFrame(None)  # in case of update
-            logger.info(f"EXISTS *{filename.stem}*, size {getsize(filename)}")
+            # logger.info(f"EXISTS *{filename.stem}*, size {getsize(filename)}")
 
             if "+" in mode and (getsize(filename) != 0):
 
