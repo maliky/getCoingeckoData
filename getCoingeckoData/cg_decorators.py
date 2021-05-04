@@ -6,8 +6,8 @@ from pandas import DataFrame, Series
 from inspect import signature, Parameter, functools
 from functools import wraps
 
-from cg_settings import APISLEEP #
-from cg_logging import logger #
+from cg_settings import APISLEEP  #
+from cg_logging import logger  #
 
 """cg_decorators.py"""
 
@@ -17,18 +17,30 @@ def w_retry(max_attemps: int = 10, sleep_time: float = APISLEEP()):
 
     def wrapper(func):
         def wrapped_func(*args, **kwargs):
+            def handle_attemps(error_):
+                """factorise attemps handling, modify attemps"""
+                attemps += 1
+                logger.exception(
+                    f"Failed {attemps}: '{error_}'. args={args} kwargs={kwargs}."
+                    f" Sleeping {sleep_time ** attemps}s and trying Again !"
+                )
+                sleep(sleep_time ** attemps)
+                return None
+
             attemps = 0
             while attemps < max_attemps:
                 try:
                     return func(*args, **kwargs)
+                except ValueError as ve:
+                    # handling the case where the coin is not present
+                    if "not find coin" in str(ve):
+                        logger.exception(f"PASSING (ignoring)  ValueError={ve}")
+                        return None
+                    handle_attemps(ve)
                 except Exception as e:
-                    attemps += 1
-                    logger.exception(
-                        f"Failed {attemps}: '{e}'. args={args} kwargs={kwargs}."
-                        f" Sleeping {sleep_time ** attemps}s and trying Again !"
-                    )
-                    sleep(sleep_time ** attemps)
-            raise Exception(f"Retried {attemps} but Failled")
+                    # other errors
+                    handle_attemps(e)
+            raise Exception(f"Retried {attemps} times but Failled")
 
         return wrapped_func
 

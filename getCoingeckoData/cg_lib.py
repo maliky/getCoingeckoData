@@ -123,9 +123,14 @@ def w_get_coin_market_chart_range_by_id(
         # _to_td = timedelta(1).total_seconds() if to_td_ is None else to_td_
         to_ts = _now()
 
-    _data = cg.get_coin_market_chart_range_by_id(
-        id=id_, vs_currency=vs_currency, from_timestamp=from_ts, to_timestamp=to_ts,
-    )
+    try:
+        _data = cg.get_coin_market_chart_range_by_id(
+            id=id_, vs_currency=vs_currency, from_timestamp=from_ts, to_timestamp=to_ts,
+        )
+    except ValueError as ve:
+        if "Could not find coin with" in ve.__str__():
+            pass
+        
     sleep(APISLEEP())
     try:
         return convert_dict_to_df(_data, ts_index=True)
