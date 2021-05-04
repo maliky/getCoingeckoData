@@ -60,33 +60,32 @@ def download_coinid_for_date_range(
     df = None
     if exists(filename):
         if "w" in mode or "+" in mode:
-            previous_df = None  # in case of update
-            if "w" in mode:
-                logger.info(f"{filename} did exist, we RENEW it.")
-
+            previous_df = DataFrame(None)  # in case of update
+            logger.info(
+                f"__{filename.stem}__\t, file of size {getsize(filename)} exists."
+            )
             if "+" in mode and (getsize(filename) != 0):
-                logger.info(
-                    f"File of size {getsize(filename)} for **{filename.stem}** exists."
-                )
-                previous_df = load_with_ext(filename, mode, 'info')
-                kwargs["from_ts"] = ts_extent(DataFrame(previous_df))[1]
+                previous_df = DataFrame(load_with_ext(filename, mode, "info"))
+                old_from_ts, kwargs["from_ts"] = ts_extent(previous_df)
                 if kwargs["from_ts"] is None:
                     kwargs["from_ts"] = DATEGENESIS
                 else:
                     assert kwargs["from_ts"] < to_tsh
-
-                logger.info(
-                    f"_UPDATE_ {filename} from {kwargs['from_ts']} to {to_tsh}"
-                )
+                    logger.info(
+                        f"__{filename.stem}__, old limites {(old_from_ts, kwargs['from_ts'])}"
+                    )
+                # we change the a in w...
+                mode = mode.replace("a", "w")
 
             df = w_get_coin_market_chart_range_by_id(**kwargs)
-            df = concat([DataFrame(previous_df), df])  # in case of an update
-            save_data_with_ext(filename, df, mode, 'info')
+            df = concat([previous_df, df])  # in case of an update
+            logger.info(f"__{filename.stem}__, UPDATING to {ts_extent(df)}")
+            save_data_with_ext(filename, df, mode, "info")
     else:
         if "x" in mode:
-            logger.info(f"{filename} did not exist already, we CREATE it.")
             df = w_get_coin_market_chart_range_by_id(**kwargs)
-            save_data_with_ext(filename, df, mode)
+            logger.info(f"__{filename.stem}__, CREATING with {ts_extent(df)}")
+            save_data_with_ext(filename, df, mode, "info")
 
     return DataFrame(df)
 
