@@ -15,21 +15,19 @@ from cg_logging import logger  #
 def w_retry(max_attemps: int = 10, sleep_time: float = APISLEEP()):
     """Return a wrapper to handle network communication errors"""
 
+    def handle_attemps(error_, attemps_, args_, kwargs_, sleep_time_):
+        """factorise attemps handling"""
+        _attemps = attemps_ + 1
+        logger.exception(
+            f"Failed {_attemps}: '{error_}'. args={args_} kwargs={kwargs_}."
+            f" Sleeping {sleep_time_ ** _attemps}s and trying Again !"
+        )
+        sleep(sleep_time_ ** _attemps)
+        return _attemps
+
     def wrapper(func):
         def wrapped_func(*args, **kwargs):
             attemps = 0
-
-            def handle_attemps(error_):
-                """factorise attemps handling, modify attemps"""
-                attemps = attemps + 1
-                logger.exception(
-                    f"Failed {attemps}: '{error_}'. args={args} kwargs={kwargs}."
-                    f" Sleeping {sleep_time ** attemps}s and trying Again !"
-                )
-                sleep(sleep_time ** attemps)
-                return None
-
-
             while attemps < max_attemps:
                 try:
                     return func(*args, **kwargs)
@@ -38,10 +36,10 @@ def w_retry(max_attemps: int = 10, sleep_time: float = APISLEEP()):
                     if "not find coin" in str(ve):
                         logger.exception(f"PASSING (ignoring)  ValueError={ve}")
                         return None
-                    handle_attemps(ve)
+                    attemps = handle_attemps(ve, attemps, args, kwargs, sleep_time)
                 except Exception as e:
                     # other errors
-                    handle_attemps(e)
+                    attemps = handle_attemps(e, attemps, args, kwargs, sleep_time)
             raise Exception(f"Retried {attemps} times but Failled")
 
         return wrapped_func

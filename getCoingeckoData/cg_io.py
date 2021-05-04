@@ -14,7 +14,7 @@ from cg_logging import logger  #
 def save_data(obj, fileout, logLevel=None):
     """Save the objet in the fileout"""
     if logLevel is not None:
-        getattr(logger, logLevel)(f"Saving {type(obj)} in {fileout}")
+        getattr(logger, logLevel.lower)(f"Saving {type(obj)} in {fileout}")
 
     with open(fileout, "bw") as fd:
         dump(obj, fd)
@@ -23,7 +23,7 @@ def save_data(obj, fileout, logLevel=None):
 def load_data(filename, logLevel=None):
     """Charge filename in memory"""
     if logLevel is not None:
-        getattr(logger, logLevel)(f"Loading data from {filename}")
+        getattr(logger, logLevel.lower())(f"Loading data from {filename}")
 
     with open(filename, mode="br") as fd:
         D = load(fd)
@@ -31,8 +31,8 @@ def load_data(filename, logLevel=None):
     return D
 
 
-def save_data_with_ext(filename, df, mode):
-    """Save a df filename checking correct mode if pkl"""
+def save_data_with_ext(filename, df, mode, logLevel=None):
+    """Save a df filename checking correct mode if pkl. logLevel in small"""
     if filename.suffix == ".pkl":
         assert "b" in mode
 
@@ -43,7 +43,8 @@ def save_data_with_ext(filename, df, mode):
         ".json": save_data_with_json,
     }[filename.suffix](df, fd)
     fd.close()
-
+    if logLevel is not None:
+        getattr(logger, logLevel.lower())(f"WROTE {filname} with SUCCES.")
     return True
 
 
@@ -62,7 +63,9 @@ def save_data_with_json(df, fd):
     df.to_json(fd)
 
 
-def load_with_ext(fname: Path, mode="br", logLevel=None) -> Union[DataFrame, Series, Dict]:
+def load_with_ext(
+    fname: Path, mode="br", logLevel=None
+) -> Union[DataFrame, Series, Dict]:
     """
     Charge en mémoire un fichier en utilisant son extension
     pour savoir quelle méthode utiliser pour le lire.
@@ -76,7 +79,9 @@ def load_with_ext(fname: Path, mode="br", logLevel=None) -> Union[DataFrame, Ser
     }[fname.suffix](fname, mode)
 
     if logLevel is not None:
-        getattr(logger, logLevel)(f'LOADED SUCCESSFULLY a {type(df)} from {fname}')
+        getattr(logger, logLevel.lower())(
+            f"LOADED SUCCESSFULLY a {type(df)} from {fname}"
+        )
 
     return df
 
@@ -87,11 +92,13 @@ def load_with_ext_pkl(fname, mode) -> Union[DataFrame, Series, Dict]:
     # import ipdb; ipdb.set_trace()
 
     try:
-        fd= open(fname, mode='br' if 'b' in mode else 'r')
+        fd = open(fname, mode="br" if "b" in mode else "r")
         _load = load(fd)
         fd.close()
     except EOFError as eofe:
-        logger.exception(f"fname={fname}, mode={mode}, tell={fd.tell()}, size={op.getsize(fname)} ")
+        logger.exception(
+            f"fname={fname}, mode={mode}, tell={fd.tell()}, size={op.getsize(fname)} "
+        )
         fd.close()
         raise eofe
     return return_df_s_dict(_load)
