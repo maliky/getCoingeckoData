@@ -2,10 +2,10 @@
 # coding: utf-8
 from pandas import concat
 
-from cg_logging import logger  #
+from .cg_logging import logger  #
 
-from cg_io import load_data, save_data  # log
-from cg_lib import format_data
+from .cg_io import load_data, save_data  # log
+from .cg_lib import format_data
 
 
 def main():

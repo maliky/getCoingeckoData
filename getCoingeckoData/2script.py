@@ -10,13 +10,13 @@ from os.path import exists, getsize
 from pandas import concat, Timestamp, DataFrame, Timedelta, Series
 from pycoingecko.api import CoinGeckoAPI
 
-from cg_logging import logger  #
-from cg_times import now_as_ts, ts_extent  #
-from cg_settings import DATEGENESIS, DFT_OLDAGE  #
-from cg_scheduling import SafeScheduler  # log
-from cg_io import load_with_ext, save_data_with_ext, read_local_files_in_df  # log
+from .cg_logging import logger  #
+from .cg_times import now_as_ts, ts_extent  #
+from .cg_settings import DATEGENESIS, DFT_OLDAGE  #
+from .cg_scheduling import SafeScheduler  # log
+from .cg_io import load_with_ext, save_data_with_ext, read_local_files_in_df  # log
 
-from cg_lib import (
+from .cg_lib import (
     check_mode,
     get_coins_list,
     w_get_coin_market_chart_range_by_id,
@@ -94,7 +94,7 @@ def download_coinid_for_date_range(
             df = DataFrame(w_get_coin_market_chart_range_by_id(**kwargs))
             logger.info(f"*{filename.stem}*\t CREATING with {len(df)}-{ts_extent(df)}")
             save_data_with_ext(filename, df, mode, "info")
-
+    logger.info(f"Work done for {to_ts}, {from_ts}")
     return DataFrame(df)
 
 
@@ -117,6 +117,7 @@ def update_coins_histdata(
             mode="ba+" if fi.suffix == ".pkl" else "a+",
             vs_currency=vs_currency,
         )
+    logger.info('Update finished')
 
 
 def update_aged_histdata(

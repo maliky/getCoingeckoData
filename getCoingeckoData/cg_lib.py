@@ -10,17 +10,17 @@ from numpy import array
 from pandas import concat, MultiIndex, DataFrame, Series, Index, to_datetime, Timestamp
 from pycoingecko.api import CoinGeckoAPI
 
-from cg_logging import logger  #
-from cg_times import _now, coerce_from_tsh_to_int  #
-from cg_settings import APISLEEP, DATEGENESIS  #
-from cg_exceptions import (
+from .cg_logging import logger  #
+from .cg_times import _now, coerce_from_tsh_to_int  #
+from .cg_settings import APISLEEP, DATEGENESIS  #
+from .cg_exceptions import (
     LenHomogeneousException,
     TypeHomogeneousException,
     ShapeHomogeneousException,
 )  #
 
-from cg_io import read_csv  # log
-from cg_decorators import w_retry, as_pd_object  # log and set
+from .cg_io import read_csv  # log
+from .cg_decorators import w_retry, as_pd_object  # log and set
 
 """cg_lib.py: Fonctions pour faciliter l'accès au données pour leur formattage"""
 
