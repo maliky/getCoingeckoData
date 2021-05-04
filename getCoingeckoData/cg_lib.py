@@ -11,7 +11,7 @@ from pandas import concat, MultiIndex, DataFrame, Series, Index, to_datetime, Ti
 from pycoingecko.api import CoinGeckoAPI
 
 from cg_logging import logger  #
-from cg_times import _now  #
+from cg_times import _now, coerce_from_tsh_to_int  #
 from cg_settings import APISLEEP, DATEGENESIS  #
 from cg_exceptions import (
     LenHomogeneousException,
@@ -24,11 +24,12 @@ from cg_decorators import w_retry, as_pd_object  # log and set
 
 """cg_lib.py: Fonctions pour faciliter l'accès au données pour leur formattage"""
 
+
 def get_historical_capitalisation_by_id(
     cg: CoinGeckoAPI,
     id_: str = "cardano",
     vs_currency="btc",
-    from_ts=int(Timestamp("2008-01-01").timestamp()),
+    from_ts=Timestamp("2008-01-01"),
     to_ts=None,
     to_td_=None,
 ) -> DataFrame:
@@ -41,13 +42,10 @@ def get_historical_capitalisation_by_id(
     return: a df
     """
     # assert to_ts is None and to_td_ is None, f"choose which to setup  to_s or to_td_ ?"
-
     if to_ts is None:
-        # set it to now
-        # _to_td = timedelta(1).total_seconds() if to_td_ is None else to_td_
-        to_ts = floor(Timestamp.now().timestamp())
+        to_ts = Timestamp.now()
 
-    # import ipdb; ipdb.set_trace()
+    from_ts, to_ts = coerce_from_tsh_to_int([from_ts, to_ts])
 
     _data = cg.get_coin_market_chart_range_by_id(
         id=id_, vs_currency=vs_currency, from_timestamp=from_ts, to_timestamp=to_ts,
@@ -106,7 +104,7 @@ def w_get_coin_market_chart_range_by_id(
     cg: CoinGeckoAPI,
     id_: str = "cardano",
     vs_currency="btc",
-    from_ts=int(DATEGENESIS.timestamp()),
+    from_ts=DATEGENESIS,
     to_ts=None,
     to_td_=None,
 ) -> DataFrame:
@@ -119,9 +117,8 @@ def w_get_coin_market_chart_range_by_id(
     return: a df
     """
     if to_ts is None:
-        # set it to now
-        # _to_td = timedelta(1).total_seconds() if to_td_ is None else to_td_
         to_ts = _now()
+    from_ts, to_ts = coerce_from_tsh_to_int([from_ts, to_ts])
 
     _data = cg.get_coin_market_chart_range_by_id(
         id=id_, vs_currency=vs_currency, from_timestamp=from_ts, to_timestamp=to_ts,
@@ -137,7 +134,7 @@ def _get_coin_market_chart_range_by_id(
     cg: CoinGeckoAPI,
     id_: str = "cardano",
     vs_currency="btc",
-    from_ts=int(DATEGENESIS.timestamp()),
+    from_ts=DATEGENESIS,
     to_ts=None,
     to_td_=None,
 ) -> DataFrame:
@@ -150,9 +147,9 @@ def _get_coin_market_chart_range_by_id(
     return: a df
     """
     if to_ts is None:
-        # set it to now
-        # _to_td = timedelta(1).total_seconds() if to_td_ is None else to_td_
         to_ts = _now()
+    from_ts, to_ts = coerce_from_tsh_to_int([from_ts, to_ts])
+    
     _data = cg.get_coin_market_chart_range_by_id(
         id=id_, vs_currency=vs_currency, from_timestamp=from_ts, to_timestamp=to_ts,
     )

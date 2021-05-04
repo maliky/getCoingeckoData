@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Union, Optional
+from typing import Union, Optional, Sequence
 from pandas import Timestamp, Series, DataFrame, date_range, Timedelta
 from math import floor
 
@@ -38,7 +38,8 @@ def get_ts_data(start_tsh_, end_tsh_, freq_="1d"):
         "range": ts_range,
     }
 
-def now_as_float( _round: str = "s") -> float:
+
+def now_as_float(_round: str = "s") -> float:
     """Return the time now, rounded as a float"""
     _now_ = Timestamp.now()
     if round is not None:
@@ -51,6 +52,7 @@ def now_as_ts(_round: str = "s") -> Timestamp:
     """Return the time now, rounded as a Timestamp"""
     return Timestamp(_now(as_ts=False, _round=_round))
 
+
 def _now(as_ts: bool = False, _round: str = "s") -> Union[float, Timestamp]:
     """Shortcut to return now.  set round to None to avoid rounding."""
     _now_ = Timestamp.now()
@@ -58,6 +60,17 @@ def _now(as_ts: bool = False, _round: str = "s") -> Union[float, Timestamp]:
         _now_ = _now_.round(_round)
 
     return floor(_now_.timestamp()) if as_ts else _now_
+
+
+def coerce_from_tsh_to_int(tss: Sequence) -> Sequence:
+    """Coerce the sequence of ts in int format"""
+
+    def _to_ts(ts):
+        if isinstance(ts, Timestamp):
+            return int(ts.timestamp())
+        return ts
+
+    return list(map(_to_ts, tss))
 
 
 def ts_extent(ref_: Union[Series, DataFrame], as_unix_ts_=False):
@@ -68,7 +81,7 @@ def ts_extent(ref_: Union[Series, DataFrame], as_unix_ts_=False):
     """
     if len(ref_) == 0:
         return None, None
-    
+
     _idx = ref_.index if isinstance(ref_, (DataFrame, Series)) else ref_
 
     tsh = _idx[0], _idx[-1]
