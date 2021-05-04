@@ -25,7 +25,6 @@ from cg_lib import (
 # TODO: permettre l'update d'une plage de coins (eg. de bit.. à coin..)
 # revoir le type de args.folder and folder
 
-
 def download_coinid_for_date_range(
     cg: CoinGeckoAPI,
     coinid: str,
@@ -129,10 +128,11 @@ def update_aged_histdata(
     vs_currency: str = "usd",
 ):
     """Update data of files of from folder that are older than DFT_OLDAGE"""
+    logger.info(f"loading file modified {age} ago.")
     dataFiles = read_local_files_in_df(folder, file_ext, with_details=True)
 
     def _old():
-        return dataFiles.ctime < (now_as_ts() - DFT_OLDAGE)
+        return dataFiles.mtime < (now_as_ts() - DFT_OLDAGE)
 
     agedDataFiles = dataFiles.where(_old).dropna().fullname
     return update_coins_histdata(cg, agedDataFiles, to_date, vs_currency)
@@ -325,7 +325,7 @@ def main_prg():
         update_job = (
             scheduler.every(1)
             .day.at(update_time)
-            .do(update_histdata, cg, **kwargs)
+            .do(update_aged_histdata, cg, **kwargs)
             .tag("update")
         )
         update_job.run()
@@ -346,6 +346,7 @@ def main_prg():
     elif args.action.upper() == "UPDATE-COINS":
         fileins = parse_coins_id_to_filename(args.coins, args.folder, args.filefmt)
         update_coins_histdata(cg, fileins, to_date=now_as_ts(), vs_currency="usd")
+
     elif args.action.upper() == "RENEW-COINS":
         logger.info("Creating new data base")
         kwargs = {
