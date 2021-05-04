@@ -105,7 +105,7 @@ def update_coins_histdata(
     vs_currency: str = "usd",
 ) -> None:
     """Met à jour les fileins avec des données to_date"""
-    logger.info(f"Updating files to date {to_date}")
+    logger.info(f"Updating files {len(fileins)} to date: {to_date}")
     for (i, fi) in enumerate(fileins):
         logger.info(f"{i+1}/{len(fileins)}: Updating {fi}")
         _ = download_coinid_for_date_range(
@@ -128,7 +128,7 @@ def update_aged_histdata(
     vs_currency: str = "usd",
 ):
     """Update data of files of from folder that are older than DFT_OLDAGE"""
-    logger.info(f"loading file modified {age} ago.")
+    logger.info(f"loading file  modified more than  {age} ago.")
     dataFiles = read_local_files_in_df(folder, file_ext, with_details=True)
 
     def _old():
