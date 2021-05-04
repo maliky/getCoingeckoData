@@ -68,7 +68,7 @@ def download_coinid_for_date_range(
                 logger.info(
                     f"File of size {getsize(filename)} for **{filename.stem}** exists."
                 )
-                previous_df = load_with_ext(filename, mode, 'INFO')
+                previous_df = load_with_ext(filename, mode, 'info')
                 kwargs["from_ts"] = ts_extent(DataFrame(previous_df))[1]
                 if kwargs["from_ts"] is None:
                     kwargs["from_ts"] = DATEGENESIS
