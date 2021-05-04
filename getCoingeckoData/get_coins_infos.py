@@ -8,11 +8,11 @@ from pathlib import Path
 from pandas import DataFrame, Series
 from pycoingecko.api import CoinGeckoAPI
 
-from .cg_decorators import w_retry, as_pd_object
-from .cg_io import get_local_stem_from_folder, read_local_files_in_df
-from .cg_settings import APISLEEP
-from .cg_logging import logger
-from .cg_lib import get_coins_list
+from getCoingeckoData.cg_decorators import w_retry, as_pd_object
+from getCoingeckoData.cg_io import get_local_stem_from_folder, read_local_files_in_df
+from getCoingeckoData.cg_settings import APISLEEP
+from getCoingeckoData.cg_logging import logger
+from getCoingeckoData.cg_lib import get_coins_list
 
 
 @w_retry()

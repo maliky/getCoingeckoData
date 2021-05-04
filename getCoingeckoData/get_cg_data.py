@@ -11,8 +11,8 @@ import numpy as np
 from pandas import DataFrame, to_datetime, Timestamp, concat, set_option
 import pycoingecko as pcg
 
-from .cg_logging import logger
-from .cg_times import get_ts_data
+from getCoingeckoData.cg_logging import logger
+from getCoingeckoData.cg_times import get_ts_data
 
 # setting the default time zone for the system
 if platform.system() == "Linux":
