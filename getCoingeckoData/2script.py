@@ -132,10 +132,10 @@ def update_aged_histdata(
     logger.info(f"loading file  modified more than  {age} ago.")
     dataFiles = read_local_files_in_df(folder, file_ext, with_details=True)
 
-    def _old():
-        return dataFiles.mtime < (now_as_ts() - DFT_OLDAGE)
+    def _old(df):
+        return df.loc[:, 'mtime'] < (now_as_ts() - DFT_OLDAGE)
 
-    agedDataFiles = dataFiles.where(_old()).dropna().fullname
+    agedDataFiles = dataFiles.where(_old(dataFiles)).dropna().fullname
     return update_coins_histdata(cg, agedDataFiles, to_date, vs_currency)
 
 
