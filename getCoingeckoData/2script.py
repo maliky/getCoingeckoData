@@ -62,7 +62,7 @@ def download_coinid_for_date_range(
         if "w" in mode or "+" in mode:
             previous_df = DataFrame(None)  # in case of update
             logger.info(
-                f"__{filename.stem}__\t, file of size {getsize(filename)} exists."
+                f"**{filename.stem}**\t, file of size {getsize(filename)} exists."
             )
             if "+" in mode and (getsize(filename) != 0):
                 previous_df = DataFrame(load_with_ext(filename, mode, "info"))
@@ -72,19 +72,21 @@ def download_coinid_for_date_range(
                 else:
                     assert kwargs["from_ts"] < to_tsh
                     logger.info(
-                        f"__{filename.stem}__, old limites {(old_from_ts, kwargs['from_ts'])}"
+                        f"**{filename.stem}**, OLD {len(previous_df)} {(old_from_ts, kwargs['from_ts'])}"
                     )
                 # we change the a in w...
                 mode = mode.replace("a", "w")
 
-            df = w_get_coin_market_chart_range_by_id(**kwargs)
-            df = concat([previous_df, df])  # in case of an update
-            logger.info(f"__{filename.stem}__, UPDATING to {ts_extent(df)}")
+            _df = w_get_coin_market_chart_range_by_id(**kwargs)
+            df = concat([previous_df, _df])  # in case of an update
+            logger.info(
+                f"**{filename.stem}**, UPDATING with {len(_df)} to {ts_extent(df)}"
+            )
             save_data_with_ext(filename, df, mode, "info")
     else:
         if "x" in mode:
             df = w_get_coin_market_chart_range_by_id(**kwargs)
-            logger.info(f"__{filename.stem}__, CREATING with {ts_extent(df)}")
+            logger.info(f"**{filename.stem}**, CREATING with {ts_extent(df)}")
             save_data_with_ext(filename, df, mode, "info")
 
     return DataFrame(df)
