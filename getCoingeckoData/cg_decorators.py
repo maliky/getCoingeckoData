@@ -17,9 +17,11 @@ def w_retry(max_attemps: int = 10, sleep_time: float = APISLEEP()):
 
     def wrapper(func):
         def wrapped_func(*args, **kwargs):
+            attemps = 0
+
             def handle_attemps(error_):
                 """factorise attemps handling, modify attemps"""
-                attemps += 1
+                attemps = attemps + 1
                 logger.exception(
                     f"Failed {attemps}: '{error_}'. args={args} kwargs={kwargs}."
                     f" Sleeping {sleep_time ** attemps}s and trying Again !"
@@ -27,7 +29,7 @@ def w_retry(max_attemps: int = 10, sleep_time: float = APISLEEP()):
                 sleep(sleep_time ** attemps)
                 return None
 
-            attemps = 0
+
             while attemps < max_attemps:
                 try:
                     return func(*args, **kwargs)
