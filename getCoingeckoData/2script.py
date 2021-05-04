@@ -86,7 +86,7 @@ def download_coinid_for_date_range(
             df = concat([previous_df, _df])
             logger.info(
                 f"UPDATING *{filename.stem}* with {len(_df)}-{ts_extent(_df)} "
-                f"to {len(df)}-{ts_extent(df)}, kwargs={kwargs}"
+                f"to {len(df)}-{ts_extent(df)}"
             )
             # and write it on disk
             save_data_with_ext(filename, df, mode, "info")
