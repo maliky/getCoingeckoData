@@ -14,7 +14,11 @@ from getCoingeckoData.cg_logging import logger  #
 from getCoingeckoData.cg_times import now_as_ts, ts_extent  #
 from getCoingeckoData.cg_settings import DATEGENESIS, DFT_OLDAGE  #
 from getCoingeckoData.cg_scheduling import SafeScheduler  # log
-from getCoingeckoData.cg_io import load_with_ext, save_data_with_ext, read_local_files_in_df  # log
+from getCoingeckoData.cg_io import (
+    load_with_ext,
+    save_data_with_ext,
+    read_local_files_in_df,
+)  # log
 
 from getCoingeckoData.cg_lib import (
     check_mode,
@@ -24,6 +28,7 @@ from getCoingeckoData.cg_lib import (
 
 # TODO: permettre l'update d'une plage de coins (eg. de bit.. à coin..)
 # revoir le type de args.folder and folder
+
 
 def download_coinid_for_date_range(
     cg: CoinGeckoAPI,
@@ -94,7 +99,7 @@ def download_coinid_for_date_range(
             df = DataFrame(w_get_coin_market_chart_range_by_id(**kwargs))
             logger.info(f"*{filename.stem}*\t CREATING with {len(df)}-{ts_extent(df)}")
             save_data_with_ext(filename, df, mode, "info")
-    logger.info(f"Work done for {to_ts}, {from_ts}")
+    logger.info(f"Work done for {to_tsh}, {from_tsh}")
     return DataFrame(df)
 
 
@@ -117,7 +122,7 @@ def update_coins_histdata(
             mode="ba+" if fi.suffix == ".pkl" else "a+",
             vs_currency=vs_currency,
         )
-    logger.info('Update finished')
+    logger.info("Update finished")
 
 
 def update_aged_histdata(
@@ -132,6 +137,7 @@ def update_aged_histdata(
     logger.info(f"loading file  modified more than  {age} ago.")
     dataFiles = read_local_files_in_df(folder, file_ext, with_details=True)
     assert len(dataFiles) > 0, f"folder={folder}, file_ext={file_ext}"
+
     def _old():
         return dataFiles.mtime < (now_as_ts() - DFT_OLDAGE)
 
@@ -236,6 +242,42 @@ def create_all_histdata(
         )
 
 
+def parse_coins_id_to_filename(
+    cg: CoinGeckoAPI, args_coins, folder: Path, file_ext: str = ".pkl"
+) -> List[Path]:
+    """Parse a list of coins and return a set of filename to processe
+    """
+    # should I make a specific currency folder?
+    coins_ids = get_coins_list(cg, update_local=False)
+
+    ret_ids = []
+    for arg_coin in args_coins.split(","):
+        if "-" in arg_coin:
+            ret_ids += parse_plage_of_coin(coins_ids, arg_coin)
+        else:
+            ret_ids += [arg_coin]
+
+    # check the validity of the returned_ids
+    left_ids = set(ret_ids) - set(coins_ids)
+    assert (
+        len(left_ids) == 0
+    ), f"{ret_ids} and {coins_ids}, diff {set(ret_ids) - set(coins_ids)}"
+
+    return [folder.joinpath(f"{a}{file_ext}") for a in ret_ids]
+
+
+def parse_plage_of_coin(coins_ids: Series, arg_coin: str):
+    """ given a string in the form a-d get all coin in between in alphabetical order"""
+    extremum = arg_coin.split("-")
+    assert len(extremum) == 2, f"{arg_coin}"
+
+    # parsing to int and sorting
+    a, b = sorted(map(int, extremum))
+
+    # sx = IndexSlice
+    return coins_ids.loc[a:b]
+
+
 def parse_args():
     """Parse command line arguments"""
     # description, defaults and help
@@ -279,9 +321,11 @@ def parse_args():
 
     overwrite_help = "Overwrite previously downloaded data"
 
+    timeDelta_dft = 23
+    timeDelta_hlp = f"The age in hours of the file to update.  (def. {timeDelta_dft})."
+
     parser = ArgumentParser(description)
-    parser.add_argument("--Order", "--O", default=coins_order_dft, help=coins_order_hlp)
-    parser.add_argument("--Strip", "-S", default=coins_strip_dft, help=coins_strip_hlp)
+    parser.add_argument("--timeDelta", "-t", default=timeDelta_dft, help=timeDelta_hlp)
     parser.add_argument("--logLevel", "-L", help=logLevel_help, default=logLevel_dft)
     parser.add_argument("--coins", "-c", help=coins_ids_help, default=coins_ids_dft)
     parser.add_argument("--sort", "-s", help=sort_help, default=sort_dft)
@@ -319,6 +363,8 @@ def main_prg():
             "folder": args.folder,
             "file_ext": args.filefmt,
             "vs_currency": args.vsCurrency,
+            "age": int(args.timeDelta),
+            "to_date": now_as_ts()
         }
         logger.info(f"Updating and then runing a daily update at {update_time}")
 
@@ -358,42 +404,6 @@ def main_prg():
 
         _ = download_coinid_for_date_range(cg, **kwargs)
         return None
-
-
-def parse_coins_id_to_filename(
-    cg: CoinGeckoAPI, args_coins, folder: Path, file_ext: str = ".pkl"
-) -> List[Path]:
-    """Parse a list of coins and return a set of filename to processe
-    """
-    # should I make a specific currency folder?
-    coins_ids = get_coins_list(cg, update_local=False)
-
-    ret_ids = []
-    for arg_coin in args_coins.split(","):
-        if "-" in arg_coin:
-            ret_ids += parse_plage_of_coin(coins_ids, arg_coin)
-        else:
-            ret_ids += [arg_coin]
-
-    # check the validity of the returned_ids
-    left_ids = set(ret_ids) - set(coins_ids)
-    assert (
-        len(left_ids) == 0
-    ), f"{ret_ids} and {coins_ids}, diff {set(ret_ids) - set(coins_ids)}"
-
-    return [folder.joinpath(f"{a}{file_ext}") for a in ret_ids]
-
-
-def parse_plage_of_coin(coins_ids: Series, arg_coin: str):
-    """ given a string in the form a-d get all coin in between in alphabetical order"""
-    extremum = arg_coin.split("-")
-    assert len(extremum) == 2, f"{arg_coin}"
-
-    # parsing to int and sorting
-    a, b = sorted(map(int, extremum))
-
-    # sx = IndexSlice
-    return coins_ids.loc[a:b]
 
 
 if __name__ == "__main__":
