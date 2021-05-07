@@ -310,7 +310,7 @@ def main_prg():
     logger.info(f"{args.action}")
     # action_help = "UPDATE-ALL, CREATE-ALL, RENEW-ALL, UPDATE-COINS, CREATE-COINS, LIST-COINS"
 
-    fileins = parse_coins_id_to_filename(args.coins, args.folder, args.filefmt)
+    fileins = parse_coins_id_to_filename(cg, args.coins, args.folder, args.filefmt)
 
     kwargs = {
         "folder": args.folder,
