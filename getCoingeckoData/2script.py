@@ -314,7 +314,7 @@ def main_prg():
 
     kwargs = {
         "folder": args.folder,
-        "file_ext": args.filemft,
+        "file_ext": args.filefmt,
         "fileins": fileins,
         "vs_currency": args.vsCurrency,
     }
