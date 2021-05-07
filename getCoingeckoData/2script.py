@@ -288,7 +288,7 @@ def parse_args():
     parser.add_argument("--filefmt", "-f", help=filefmt_help, default=filefmt_dft)
     parser.add_argument("--folder", "-d", help=folder_help, default=folder_dft)
     parser.add_argument("--overwrite", "-o", action="store_true", help=overwrite_help)
-    parser.add_argument("--action", "-a", help=action_help, default=action_dft)
+    parser.add_argument("--action", "-A", help=action_help, default=action_dft)
 
     return parser.parse_args()
 
