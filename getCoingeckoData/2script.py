@@ -139,7 +139,7 @@ def update_coins_histdata(
             mode="ba+" if fi.suffix == ".pkl" else "a+",
             vs_currency=vs_currency,
         )
-    logger.info("UPDATED {len(fileins)} files.")
+    logger.info(f"UPDATED {len(fileins)} files.")
 
 
 def create_coins_histdata(
@@ -359,7 +359,8 @@ def main_prg():
         #     }
 
         #     _ = download_coinid_for_date_range(cg, **kwargs)
-        return None
+    logger.info("***The End***")    
+    return None
 
 
 if __name__ == "__main__":
