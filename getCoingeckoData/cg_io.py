@@ -43,6 +43,7 @@ def save_data_with_ext(filename, df, mode, logLevel=None):
         ".json": save_data_with_json,
     }[filename.suffix](df, fd)
     fd.close()
+
     if logLevel is not None:
         getattr(logger, logLevel.lower())(f"WROTE ({mode}, len(df)={len(df)}) to {filename} with SUCCESS!")
     return True

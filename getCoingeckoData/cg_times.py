@@ -3,6 +3,7 @@ from typing import Union, Optional, Sequence
 from pandas import Timestamp, Series, DataFrame, date_range, Timedelta
 from math import floor
 
+
 """cg_times.py  : Utilities working with time object"""
 
 

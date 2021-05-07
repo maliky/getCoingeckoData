@@ -99,18 +99,34 @@ def download_coinid_for_date_range(
             df = DataFrame(w_get_coin_market_chart_range_by_id(**kwargs))
             logger.info(f"*{filename.stem}*\t CREATING with {len(df)}-{ts_extent(df)}")
             save_data_with_ext(filename, df, mode, "info")
-    logger.info(f"Work done for {to_tsh}, {from_tsh}")
+    logger.info(f"DOWNLOAD FINISHED *{filename.stem}*")
     return DataFrame(df)
 
 
 def update_coins_histdata(
     cg: CoinGeckoAPI,
-    fileins: Sequence[Path],
+    folder: Path,
+    file_ext: str = ".pkl",
     to_date: Timestamp = now_as_ts(),
     vs_currency: str = "usd",
+    age: Optional[Timedelta] = None,
+    fileins: Optional[List[Path]] = None,
 ) -> None:
     """Met à jour les fileins avec des données to_date"""
-    logger.info(f"Updating files {len(fileins)} to date: {to_date}")
+    if fileins is None:
+
+        fileins = read_local_files_in_df(folder, file_ext, with_details=True).fullname
+        assert (
+            len(fileins) > 0
+        ), f"folder={folder}, file_ext={file_ext}. No files to update please use CREATE"
+
+    if age is not None:
+        logger.info(f"UPDATING files CHANGED more than {age} ago.")
+        mask = map(is_old, fileins)
+        fileins = Series(fileins).loc[mask]
+
+    logger.info(f"UPDATING {len(fileins)} files to {to_date}")
+
     for (i, fi) in enumerate(fileins):
         logger.info(f"{i+1}/{len(fileins)}: Updating {fi}")
         _ = download_coinid_for_date_range(
@@ -122,46 +138,7 @@ def update_coins_histdata(
             mode="ba+" if fi.suffix == ".pkl" else "a+",
             vs_currency=vs_currency,
         )
-    logger.info("Update finished")
-
-
-def update_aged_histdata(
-    cg: CoinGeckoAPI,
-    folder: Path,
-    file_ext: str,
-    to_date: Timestamp = now_as_ts(),
-    age: Timedelta = DFT_OLDAGE,
-    vs_currency: str = "usd",
-):
-    """Update data of files of from folder that are older than DFT_OLDAGE"""
-    logger.info(f"loading file  modified more than  {age} ago.")
-    dataFiles = read_local_files_in_df(folder, file_ext, with_details=True)
-    assert len(dataFiles) > 0, f"folder={folder}, file_ext={file_ext}"
-
-    def _old():
-        return dataFiles.mtime < (now_as_ts() - DFT_OLDAGE)
-
-    agedDataFiles = dataFiles.where(_old()).dropna().fullname
-    return update_coins_histdata(cg, agedDataFiles, to_date, vs_currency)
-
-
-def update_histdata(
-    cg: CoinGeckoAPI,
-    folder: Path,
-    file_ext: str,
-    how: str = "all",
-    to_date: Timestamp = now_as_ts(),
-    vs_currency: str = "usd",
-):
-    """
-    Get all existing files of ext type in folder and update them to tsh
-    how should be a keyword, specifing what file to update.  f10-old, l10-size,
-    for First 10 of the oldest, or all-old. or all-mtime
-    """
-    # def parse_how():
-
-    dataFiles = read_local_files_in_df(folder, file_ext).fullname
-    return update_coins_histdata(cg, dataFiles, to_date, vs_currency)
+    logger.info("UPDATED {len(fileins)} files.")
 
 
 def create_coins_histdata(
@@ -170,23 +147,22 @@ def create_coins_histdata(
     file_ext: str = ".pkl",
     to_date: Timestamp = now_as_ts(),
     vs_currency: str = "usd",
+    fileins: Optional[List[Path]] = None,
 ) -> None:
     """
     Get existing files and coinid, compare to see what are the missing files
     download the data to create them.
     """
-    dataFiles = read_local_files_in_df(folder, file_ext)
-    local_coinids = [f.stem for f in dataFiles]
-    coins_ids = get_coins_list(cg, update_local=False)
-
-    assert len(coins_ids) >= len(
-        local_coinids
-    ), f"{set(local_coinids) - set(coins_ids)}"
-    new_coinids = set(coins_ids) - set(local_coinids)
+    if fileins is None:
+        new_coinids = set(get_coins_list(cg, update_local=False)) - set(
+            read_local_files_in_df(folder, file_ext).stem
+        )
+    else:
+        new_coin_ids = [f.stem for f in fileins]
 
     # Create new coinids data file on disk
     for (i, coinid) in enumerate(new_coinids):
-        logger.info(f"{i+1}/{len(new_coinids)}:  CREATING {coinid}")
+        logger.info(f"{i+1}/{len(new_coinids)}:  CREATING *{coinid}*")
         _ = download_coinid_for_date_range(
             cg,
             coinid,
@@ -198,15 +174,20 @@ def create_coins_histdata(
         )
 
 
-def renew_all_histdata(
+def renew_coins_histdata(
     cg: CoinGeckoAPI,
     folder: Path,
     file_ext: str = ".pkl",
     to_date: Timestamp = now_as_ts(),
     vs_currency: str = "usd",
+    fileins: Optional[List[Path]] = None,
 ) -> None:
     """Rewrite all database with data up 'to_date'"""
-    new_coin_ids = get_coins_list(cg, update_local=True)
+    if fileins is None:
+        new_coin_ids = get_coins_list(cg, update_local=True)
+    else:
+        new_coin_ids = [f.stem for f in fileins]
+
     for (i, coinid) in enumerate(new_coin_ids):
         logger.info(f"{i+1}/{len(new_coin_ids)}:  RENEWING {coinid}")
         _ = download_coinid_for_date_range(
@@ -220,62 +201,40 @@ def renew_all_histdata(
         )
 
 
-def create_all_histdata(
-    cg: CoinGeckoAPI,
-    folder: Path,
-    file_ext: str = ".pkl",
-    to_date: Timestamp = now_as_ts(),
-    vs_currency: str = "usd",
-) -> None:
-    """Rewrite all database with data up 'to_date'"""
-    new_coin_ids = get_coins_list(cg, update_local=True)
-    for (i, coinid) in enumerate(new_coin_ids):
-        logger.info(f"{i+1}/{len(new_coin_ids)}:  CREATING {coinid}")
-        _ = download_coinid_for_date_range(
-            cg,
-            coinid,
-            folder,
-            file_ext=file_ext,
-            to_tsh=to_date,
-            vs_currency=vs_currency,
-            mode="bx" if file_ext == ".pkl" else "x",
-        )
-
-
 def parse_coins_id_to_filename(
     cg: CoinGeckoAPI, args_coins, folder: Path, file_ext: str = ".pkl"
-) -> List[Path]:
-    """Parse a list of coins and return a set of filename to processe
-    """
+) -> Optional[List[Path]]:
+    """Parse a list of coins and return a set of filename to processe"""
+    if args_coins is None:
+        return None
     # should I make a specific currency folder?
     coins_ids = get_coins_list(cg, update_local=False)
 
-    ret_ids = []
+    _ids = []
     for arg_coin in args_coins.split(","):
-        if "-" in arg_coin:
-            ret_ids += parse_plage_of_coin(coins_ids, arg_coin)
-        else:
-            ret_ids += [arg_coin]
+        _ids += (
+            parse_plage_of_coin(coins_ids, arg_coin) if "-" in arg_coin else [arg_coin]
+        )
 
     # check the validity of the returned_ids
-    left_ids = set(ret_ids) - set(coins_ids)
-    assert (
-        len(left_ids) == 0
-    ), f"{ret_ids} and {coins_ids}, diff {set(ret_ids) - set(coins_ids)}"
+    _ids = set(_ids)
+    unknown_ids = _ids - set(coins_ids)
+    assert len(unknown_ids) == 0, f"{_ids} and {coins_ids}, unknown_ids={unknown_ids}"
 
-    return [folder.joinpath(f"{a}{file_ext}") for a in ret_ids]
+    return sorted([folder.joinpath(f"{_id}{file_ext}") for _id in _ids])
 
 
 def parse_plage_of_coin(coins_ids: Series, arg_coin: str):
     """ given a string in the form a-d get all coin in between in alphabetical order"""
-    extremum = arg_coin.split("-")
-    assert len(extremum) == 2, f"{arg_coin}"
+    plage = arg_coin.split("-")
+    assert len(plage) == 2, f"{arg_coin}"
 
     # parsing to int and sorting
-    a, b = sorted(map(int, extremum))
+    coin_a, coin_b = sorted(map(int, plage))
+    coin_a_idx = coins_ids.where(coins_ids == coin_a).dropna().index.values[0]
+    coin_b_idx = coins_ids.where(coins_ids == coin_b).dropna().index.values[0]
 
-    # sx = IndexSlice
-    return coins_ids.loc[a:b]
+    return coins_ids.loc[coin_a_idx:coin_b_idx]
 
 
 def parse_args():
@@ -284,8 +243,13 @@ def parse_args():
     description = (
         """Application to download and update all coin listed by of coingecko"""
     )
-    action_dft = "UPDATE-ALL"
-    action_help = "UPDATE-ALL, CREATE-ALL, UPDATE-COINS, CREATE-COINS, GET-COINS, GET-ALL, LIST-COINS"
+    action_dft = "UPDATE"
+    action_help = (
+        "UPDATE: check the coins on the disk update them with latest data. do so regularly\n",
+        "CREATE: make sure all data on disk has the coins from the API.\n"
+        "RENEW: a mix of CREATE and UPDATE.\n"
+        "LIST-COINS",
+    )
 
     coins_ids_dft = "bitcoin,cardano"
     coins_ids_help = (
@@ -321,11 +285,11 @@ def parse_args():
 
     overwrite_help = "Overwrite previously downloaded data"
 
-    timeDelta_dft = 23
-    timeDelta_hlp = f"The age in hours of the file to update.  (def. {timeDelta_dft})."
+    age_dft = "23"
+    age_hlp = f"The age in hours of the file to update.  (def. {timeDelta_dft})."
 
     parser = ArgumentParser(description)
-    parser.add_argument("--timeDelta", "-t", default=timeDelta_dft, help=timeDelta_hlp)
+    parser.add_argument("--age", "-a", default=timeDelta_dft, help=timeDelta_hlp)
     parser.add_argument("--logLevel", "-L", help=logLevel_help, default=logLevel_dft)
     parser.add_argument("--coins", "-c", help=coins_ids_help, default=coins_ids_dft)
     parser.add_argument("--sort", "-s", help=sort_help, default=sort_dft)
@@ -357,22 +321,23 @@ def main_prg():
     logger.info(f"{args.action}")
     # action_help = "UPDATE-ALL, CREATE-ALL, RENEW-ALL, UPDATE-COINS, CREATE-COINS, LIST-COINS"
 
-    if args.action.upper() == "UPDATE-ALL":
+    fileins = parse_coins_id_to_filename(args.coins, args.folder, args.filefmt)
+
+    kwargs = {
+        "fileins": fileins,
+        "vs_currency": args.vsCurrency,
+    }
+
+    if args.action.upper() == "UPDATE":
         update_time = "18:50"
-        kwargs = {
-            "folder": args.folder,
-            "file_ext": args.filefmt,
-            "vs_currency": args.vsCurrency,
-            "age": int(args.timeDelta),
-            "to_date": now_as_ts()
-        }
+        kwargs.update({"age": Timedelta(f"{args.age}h"), "to_date": now_as_ts()})
         logger.info(f"Updating and then runing a daily update at {update_time}")
 
         scheduler = SafeScheduler()
         update_job = (
             scheduler.every(1)
             .day.at(update_time)
-            .do(update_aged_histdata, cg, **kwargs)
+            .do(update_coins_histdata, cg, **kwargs)
             .tag("update")
         )
         update_job.run()
@@ -381,17 +346,16 @@ def main_prg():
             scheduler.run_pending()
             sleep(1)
 
-    elif args.action.upper() == "CREATE-ALL":
-        create_all_histdata(
+    elif args.action.upper() == "CREATE":
+        create_coins_histdata(
             cg, folder=args.folder, file_ext=args.filefmt, vs_currency=args.vsCurrency,
         )
-    elif args.action.upper() == "RENEW-ALL":
+    elif args.action.upper() == "RENEW":
         renew_all_histdata(
             cg, folder=args.folder, file_ext=args.filefmt, vs_currency=args.vsCurrency,
         )
 
     elif args.action.upper() == "UPDATE-COINS":
-        fileins = parse_coins_id_to_filename(args.coins, args.folder, args.filefmt)
         update_coins_histdata(cg, fileins, to_date=now_as_ts(), vs_currency="usd")
 
     elif args.action.upper() == "RENEW-COINS":

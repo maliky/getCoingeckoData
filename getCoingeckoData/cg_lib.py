@@ -2,17 +2,26 @@
 # ~/Python/Env_sys/KolaVizPrj/KolaViz/Lib/fnames.py voir
 from time import sleep
 from typing import Union, Sequence, Dict
-from math import floor
 from pathlib import Path
 import os
+from os.path import getmtime
 
 from numpy import array
-from pandas import concat, MultiIndex, DataFrame, Series, Index, to_datetime, Timestamp
+from pandas import (
+    concat,
+    MultiIndex,
+    DataFrame,
+    Series,
+    Index,
+    to_datetime,
+    Timestamp,
+    Timedelta,
+)
 from pycoingecko.api import CoinGeckoAPI
 
 from getCoingeckoData.cg_logging import logger  #
-from getCoingeckoData.cg_times import _now, coerce_from_tsh_to_int  #
-from getCoingeckoData.cg_settings import APISLEEP, DATEGENESIS  #
+from getCoingeckoData.cg_times import _now, now_as_ts, coerce_from_tsh_to_int  #
+from getCoingeckoData.cg_settings import APISLEEP, DATEGENESIS, DFT_OLDAGE  #
 from getCoingeckoData.cg_exceptions import (
     LenHomogeneousException,
     TypeHomogeneousException,
@@ -149,7 +158,7 @@ def _get_coin_market_chart_range_by_id(
     if to_ts is None:
         to_ts = _now()
     from_ts, to_ts = coerce_from_tsh_to_int([from_ts, to_ts])
-    
+
     _data = cg.get_coin_market_chart_range_by_id(
         id=id_, vs_currency=vs_currency, from_timestamp=from_ts, to_timestamp=to_ts,
     )
@@ -173,6 +182,12 @@ def retry(func, *args, **kwargs):
             )
 
     return None
+
+
+def is_old(_file: Union[str, Path], age: Timedelta = DFT_OLDAGE):
+    """Return true if file is older than age
+    """
+    return Timestamp(getmtime(_file), unit="s") < (now_as_ts() - age)
 
 
 def is_between(x, a, b, strict="yes") -> bool:
@@ -241,43 +256,6 @@ def filtre(df: DataFrame, where: str, col) -> DataFrame:
 #     assert tuple_ == sorted(tuple_)
 #     _list = sorted(list_)
 #     return [e for e in _list if is_between(e, *tuple_, strict="no")]
-
-
-# def coin_ids_to_filenames(cg: CoinGeckoAPI, args_coins, folder: str, file_ext: str) -> List:
-#     """Parse the list of coins and return a set of filenames to processe"""
-#     # should I make a specific currency folder?
-#     arg_coins = parse_coin_ids(cg, args_coins)
-#     return [Path(folder).joinpath(f"{coin}{file_ext}") for coin in arg_coins]
-
-
-# def parse_coin_ids(cg: CoinGeckoAPI, args_coins: str = "a-fullname"):
-#     """
-#     get a string specifing how to parse coins.
-#     [sort-order][size]-[sort-key] with sort-order 'a' or 'd' (def. 'a')
-#     a size is the number of records to return. if none, return all (def all)
-#     a sort-key in 'mtime', 'size', 'name' (def. name)
-#     can also be juste coins ids separated by commas
-
-#     returns the ids of the coins
-#     """
-#     # get all possible coins_ids from API
-#     coin_ids = get_coins_list(cg, update_local=False)
-
-#     ret_id = []
-#     for args in args_coins.split(","):
-#         value = args.split("-")
-#         assert len(value) in [
-#             1,
-#             2,
-#         ], f"value={value}, args_coins={args_coins}, args={args}"
-
-#         ret_id += expand(value, coin_ids) if len(value) == 2 else value
-
-#     assert are_valide_coin_ids(
-#         cg, ret_id
-#     ), f"{args_coins} and {coin_ids}, diff {set(args_coins) - set(coin_ids)}"
-
-#     return ret_id
 
 
 def dict_value_filter(dict_: dict, criteria) -> dict:
