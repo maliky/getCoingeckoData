@@ -156,7 +156,7 @@ def create_coins_histdata(
     """
     if fileins is None:
         new_coinids = set(get_coins_list(cg, update_local=False)) - set(
-            read_local_files_in_df(folder, file_ext).stem
+            read_local_files_in_df(folder, file_ext, with_details=True).stem
         )
     else:
         new_coinids = [f.stem for f in fileins]
