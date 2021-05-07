@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """main file getcg_data.py. pour récupérer les données avec coingecko"""
 from time import sleep
+from typing import Union
 
 import argparse
 import os

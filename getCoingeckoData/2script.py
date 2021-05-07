@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 from time import sleep
-from typing import Sequence, List, Union
+from typing import List, Optional
 from argparse import ArgumentParser
 from sys import exit
 import os
@@ -12,7 +12,7 @@ from pycoingecko.api import CoinGeckoAPI
 
 from getCoingeckoData.cg_logging import logger  #
 from getCoingeckoData.cg_times import now_as_ts, ts_extent  #
-from getCoingeckoData.cg_settings import DATEGENESIS, DFT_OLDAGE  #
+from getCoingeckoData.cg_settings import DATEGENESIS  #
 from getCoingeckoData.cg_scheduling import SafeScheduler  # log
 from getCoingeckoData.cg_io import (
     load_with_ext,
@@ -21,6 +21,7 @@ from getCoingeckoData.cg_io import (
 )  # log
 
 from getCoingeckoData.cg_lib import (
+    is_old,
     check_mode,
     get_coins_list,
     w_get_coin_market_chart_range_by_id,
@@ -158,7 +159,7 @@ def create_coins_histdata(
             read_local_files_in_df(folder, file_ext).stem
         )
     else:
-        new_coin_ids = [f.stem for f in fileins]
+        new_coinids = [f.stem for f in fileins]
 
     # Create new coinids data file on disk
     for (i, coinid) in enumerate(new_coinids):
@@ -245,28 +246,16 @@ def parse_args():
     )
     action_dft = "UPDATE"
     action_help = (
-        "UPDATE: check the coins on the disk update them with latest data. do so regularly\n",
+        "UPDATE: check the coins on the disk update them with latest data. do so regularly\n"
         "CREATE: make sure all data on disk has the coins from the API.\n"
         "RENEW: a mix of CREATE and UPDATE.\n"
-        "LIST-COINS",
+        "LIST-COINS"
     )
 
     coins_ids_dft = "bitcoin,cardano"
     coins_ids_help = (
         " Specify which coin to get.  Can be a coinid (see action LIST-COINS)"
         f", a list of coinid 'id1,id2,id3' or a range 'idx-idy' {coins_ids_dft}"
-    )
-
-    coins_order_dft = "alpha"
-    coins_order_hlp = (
-        f"Define the order in which to update coins (def. {coins_order_dft}).  "
-        "should be one of alpha or mtime or another os.path propertie supported."
-    )
-
-    coins_strip_dft = "f10"
-    coins_strip_hlp = (
-        f"Define the number of coin to update.  Should be a letter f or"
-        f" l for first or last and a number. (def. {coins_strip_dft})."
     )
     sort_dft = "alphabetical"
     sort_help = "a sort order to handle coins before action, can be market-cap, price, mtime, size"
@@ -286,10 +275,10 @@ def parse_args():
     overwrite_help = "Overwrite previously downloaded data"
 
     age_dft = "23"
-    age_hlp = f"The age in hours of the file to update.  (def. {timeDelta_dft})."
+    age_hlp = f"The age in hours of the file to update.  (def. {age_dft})."
 
     parser = ArgumentParser(description)
-    parser.add_argument("--age", "-a", default=timeDelta_dft, help=timeDelta_hlp)
+    parser.add_argument("--age", "-a", default=age_dft, help=age_hlp)
     parser.add_argument("--logLevel", "-L", help=logLevel_help, default=logLevel_dft)
     parser.add_argument("--coins", "-c", help=coins_ids_help, default=coins_ids_dft)
     parser.add_argument("--sort", "-s", help=sort_help, default=sort_dft)
@@ -324,6 +313,8 @@ def main_prg():
     fileins = parse_coins_id_to_filename(args.coins, args.folder, args.filefmt)
 
     kwargs = {
+        "folder": args.folder,
+        "file_ext": args.filemft,
         "fileins": fileins,
         "vs_currency": args.vsCurrency,
     }
@@ -351,22 +342,23 @@ def main_prg():
             cg, folder=args.folder, file_ext=args.filefmt, vs_currency=args.vsCurrency,
         )
     elif args.action.upper() == "RENEW":
-        renew_all_histdata(
+        renew_coins_histdata(
             cg, folder=args.folder, file_ext=args.filefmt, vs_currency=args.vsCurrency,
         )
 
     elif args.action.upper() == "UPDATE-COINS":
-        update_coins_histdata(cg, fileins, to_date=now_as_ts(), vs_currency="usd")
+        kwargs.update({"age": Timedelta(f"{args.age}h"), "to_date": now_as_ts()})
+        update_coins_histdata(cg, **kwargs)
 
-    elif args.action.upper() == "RENEW-COINS":
-        logger.info("Creating new data base")
-        kwargs = {
-            "folder": args.folder,
-            "file_format": args.filefmt,
-            "mode": "bw" if args.overwrite else "bx",
-        }
+        # elif args.action.upper() == "RENEW-COINS":
+        #     logger.info("Creating new data base")
+        #     kwargs = {
+        #         "folder": args.folder,
+        #         "file_format": args.filefmt,
+        #         "mode": "bw" if args.overwrite else "bx",
+        #     }
 
-        _ = download_coinid_for_date_range(cg, **kwargs)
+        #     _ = download_coinid_for_date_range(cg, **kwargs)
         return None
 
 
