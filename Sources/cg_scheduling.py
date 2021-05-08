@@ -3,7 +3,7 @@ from traceback import format_exc
 
 from schedule import Scheduler, Job
 
-from getCoingeckoData.cg_logging import logger #
+from Sources.cg_logging import logger #
 
 
 class SafeScheduler(Scheduler):

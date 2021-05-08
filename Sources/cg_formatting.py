@@ -2,10 +2,10 @@
 # coding: utf-8
 from pandas import concat
 
-from getCoingeckoData.cg_logging import logger  #
+from Sources.cg_logging import logger  #
 
-from getCoingeckoData.cg_io import load_data, save_data  # log
-from getCoingeckoData.cg_lib import format_data
+from Sources.cg_io import load_data, save_data  # log
+from Sources.cg_lib import format_data
 
 
 def main():

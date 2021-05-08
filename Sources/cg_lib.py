@@ -19,17 +19,17 @@ from pandas import (
 )
 from pycoingecko.api import CoinGeckoAPI
 
-from getCoingeckoData.cg_logging import logger  #
-from getCoingeckoData.cg_times import _now, now_as_ts, coerce_from_tsh_to_int  #
-from getCoingeckoData.cg_settings import APISLEEP, DATEGENESIS, DFT_OLDAGE  #
-from getCoingeckoData.cg_exceptions import (
+from Sources.cg_logging import logger  #
+from Sources.cg_times import _now, now_as_ts, coerce_from_tsh_to_int  #
+from Sources.cg_settings import APISLEEP, DATEGENESIS, DFT_OLDAGE  #
+from Sources.cg_exceptions import (
     LenHomogeneousException,
     TypeHomogeneousException,
     ShapeHomogeneousException,
 )  #
 
-from getCoingeckoData.cg_io import read_csv  # log
-from getCoingeckoData.cg_decorators import w_retry, as_pd_object  # log and set
+from Sources.cg_io import read_csv  # log
+from Sources.cg_decorators import w_retry, as_pd_object  # log and set
 
 """cg_lib.py: Fonctions pour faciliter l'accès au données pour leur formattage"""
 
@@ -185,8 +185,7 @@ def retry(func, *args, **kwargs):
 
 
 def is_old(_file: Union[str, Path], age: Timedelta = DFT_OLDAGE):
-    """Return true if file is older than age
-    """
+    """Return true if file is older than age"""
     return Timestamp(getmtime(_file), unit="s") < (now_as_ts() - age)
 
 

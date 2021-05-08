@@ -8,7 +8,7 @@ import os.path as op
 from pickle import dump, load
 from pandas import DataFrame, Series, read_csv, read_json, to_datetime
 
-from getCoingeckoData.cg_logging import logger  #
+from Sources.cg_logging import logger  #
 
 
 def save_data(obj, fileout, logLevel=None):
