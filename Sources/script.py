@@ -21,6 +21,7 @@ from Sources.cg_io import (
 )  # log
 
 from Sources.cg_lib import (
+    get_file_age,
     is_old,
     check_mode,
     get_coins_list,
@@ -132,7 +133,7 @@ def update_coins_histdata(
         ages = sorted([(get_file_age(f), f) for f in fileins])
         fileins = Series(fileins).loc[mask]
         log_msg += f"of which {len(fileins)} were CHANGED more than {age} ago."
-        log_msg += f"the newest is {age[0]} and the oldest {age[-1]}"
+        log_msg += f"the newest is {ages[0]} and the oldest {ages[-1]}"
 
     logger.info(log_msg)
     for (i, fi) in enumerate(fileins):
