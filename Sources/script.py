@@ -244,7 +244,8 @@ def parse_args_id_to_ids(
         get_coins_list(cg, update_local=False) if coins_ids_ is None else coins_ids_
     )
     if args_coins.lower() == "all":
-        return coins_ids
+        # by default will check file on disk
+        return None
     #
     _ids = []
     for arg_coin in args_coins.split(","):
