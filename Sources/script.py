@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 from time import sleep
-from typing import List, Optional
+from typing import List, Optional, Union, Callable
 from argparse import ArgumentParser
 from sys import exit
+import inspect
 import os
 from os.path import exists, getsize
 
@@ -37,7 +38,7 @@ def download_coinid_for_date_range(
     folder: Path,
     file_ext: str = ".pkl",
     from_tsh: Timestamp = DATEGENESIS,
-    to_tsh: Timestamp = now_as_ts(),
+    to_tsh: Union[Timestamp, Callable] = now_as_ts,
     vs_currency: str = "usd",
     mode: str = "bw",
 ) -> DataFrame:
@@ -49,8 +50,12 @@ def download_coinid_for_date_range(
     - x only create new file, raise if exisiting untouch
     - w rewrite datafile with given tsh (human ts)
     - a+ update data of datafile
+    - to_tsh can be a callable object in which case calle simply it should retrun a timestamp
     """
+
+    _to_tsh = to_tsh() if inspect.__builtins__["callable"](to_tsh) else to_tsh
     filename = folder.joinpath(f"{coinid}{file_ext}")
+    dates_msg = ""
 
     assert check_mode(mode, file_ext)
 
@@ -59,7 +64,7 @@ def download_coinid_for_date_range(
         "id_": coinid,
         "vs_currency": vs_currency,
         "from_ts": from_tsh,
-        "to_ts": to_tsh,
+        "to_ts": _to_tsh,
     }
     df = None
     if exists(filename):
@@ -70,16 +75,17 @@ def download_coinid_for_date_range(
             if "+" in mode and (getsize(filename) != 0):
 
                 # we load the file from the disk
-                previous_df = DataFrame(load_with_ext(filename, mode, "info"))
+                previous_df = DataFrame(load_with_ext(filename, mode, "debug"))
 
                 old_from_ts, kwargs["from_ts"] = ts_extent(previous_df)
                 if kwargs["from_ts"] is None:
                     kwargs["from_ts"] = DATEGENESIS
                 else:
-                    assert kwargs["from_ts"] < to_tsh
-                    logger.info(
-                        f"OLD ts *{filename.stem}* {(old_from_ts, kwargs['from_ts'])}"
+                    assert kwargs["from_ts"] < _to_tsh
+                    logger.debug(
+                        f"OLD *{filename.stem}* {(old_from_ts, kwargs['from_ts'])}"
                     )
+                    dates_msg += f"from last record at {kwargs['from_ts']} "
                 # we change the a in w...
                 mode = mode.replace("a", "w")
 
@@ -88,12 +94,10 @@ def download_coinid_for_date_range(
 
             # add it to previous if we do an update
             df = concat([previous_df, _df])
-            logger.info(
-                f"UPDATING *{filename.stem}* with {len(_df)}-{ts_extent(_df)} "
-                f"to {len(df)}-{ts_extent(df)}"
-            )
+            dates_msg += f"to {ts_extent(df)[1]} "
+            logger.info(f"UPDATING *{filename.stem}* {dates_msg}")
             # and write it on disk
-            save_data_with_ext(filename, df, mode, "info")
+            save_data_with_ext(filename, df, mode, "debug")
     else:
         if "x" in mode:
             df = DataFrame(w_get_coin_market_chart_range_by_id(**kwargs))
@@ -113,6 +117,7 @@ def update_coins_histdata(
     fileins: Optional[List[Path]] = None,
 ) -> None:
     """Met à jour les fileins avec des données to_date"""
+    log_msg = "UPDATING "
     if fileins is None:
 
         fileins = read_local_files_in_df(folder, file_ext, with_details=True).fullname
@@ -120,12 +125,13 @@ def update_coins_histdata(
             len(fileins) > 0
         ), f"folder={folder}, file_ext={file_ext}. No files to update please use CREATE"
 
+    log_msg = f"{len(fileins)} files in {folder} "
     if age is not None:
-        logger.info(f"UPDATING files in {folder} CHANGED more than {age} ago.")
         mask = map(is_old, fileins)
         fileins = Series(fileins).loc[mask]
+        log_msg += f"of wich {len(fileins)} were CHANGED more than {age} ago."
 
-    logger.info(f"UPDATING {len(fileins)} files to {to_date}")
+    logger.info(log_msg)
 
     for (i, fi) in enumerate(fileins):
         logger.info(f"{i+1}/{len(fileins)}: Updating {fi}")
@@ -138,7 +144,7 @@ def update_coins_histdata(
             mode="ba+" if fi.suffix == ".pkl" else "a+",
             vs_currency=vs_currency,
         )
-    logger.info(f"UPDATED {len(fileins)} files.")
+    logger.info(f"UPDATE to {to_date} finishded")
 
 
 def create_coins_histdata(
@@ -221,7 +227,8 @@ def parse_coins_id_to_filename(
     coins_ids = (
         get_coins_list(cg, update_local=False) if coins_ids_ is None else coins_ids_
     )
-
+    if args_coins.lower() == "all":
+        return coins_ids
     #
     _ids = []
     for arg_coin in args_coins.split(","):
