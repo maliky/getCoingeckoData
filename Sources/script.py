@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 from time import sleep
-from typing import List, Optional, Union, Callable
+from typing import List, Optional
 from argparse import ArgumentParser
 from sys import exit
-import inspect
 import os
 from os.path import exists, getsize
 
@@ -38,7 +37,7 @@ def download_coinid_for_date_range(
     folder: Path,
     file_ext: str = ".pkl",
     from_tsh: Timestamp = DATEGENESIS,
-    to_tsh: Union[Timestamp, Callable] = now_as_ts,
+    to_tsh: Optional[Timestamp] = None,
     vs_currency: str = "usd",
     mode: str = "bw",
 ) -> DataFrame:
@@ -53,7 +52,8 @@ def download_coinid_for_date_range(
     - to_tsh can be a callable object in which case calle simply it should retrun a timestamp
     """
 
-    _to_tsh = to_tsh() if inspect.__builtins__["callable"](to_tsh) else to_tsh
+    # _to_tsh = to_tsh() if inspect.__builtins__["callable"](to_tsh) else to_tsh
+    _to_tsh = to_tsh if to_tsh is not None else now_as_ts()
     filename = folder.joinpath(f"{coinid}{file_ext}")
     dates_msg = ""
 
@@ -111,12 +111,13 @@ def update_coins_histdata(
     cg: CoinGeckoAPI,
     folder: Path,
     file_ext: str = ".pkl",
-    to_date: Timestamp = now_as_ts(),
+    to_date: Optional[Timestamp] = None,
     vs_currency: str = "usd",
     age: Optional[Timedelta] = None,
     fileins: Optional[List[Path]] = None,
 ) -> None:
     """Met à jour les fileins avec des données to_date"""
+    _to_date = to_date if to_date is not None else now_as_ts()
     log_msg = "UPDATING "
     if fileins is None:
 
@@ -127,7 +128,7 @@ def update_coins_histdata(
 
     log_msg = f"{len(fileins)} files in {folder} "
     if age is not None:
-        mask = map(is_old, fileins)
+        mask = map(lambda f: is_old(f, age), fileins)
         fileins = Series(fileins).loc[mask]
         log_msg += f"of wich {len(fileins)} were CHANGED more than {age} ago."
 
@@ -140,18 +141,18 @@ def update_coins_histdata(
             fi.stem,
             fi.parent,
             file_ext=fi.suffix,
-            to_tsh=to_date,
+            to_tsh=_to_date,
             mode="ba+" if fi.suffix == ".pkl" else "a+",
             vs_currency=vs_currency,
         )
-    logger.info(f"UPDATE to {to_date} finishded")
+    logger.info(f"UPDATE to {_to_date} finished")
 
 
 def create_coins_histdata(
     cg: CoinGeckoAPI,
     folder: Path,
     file_ext: str = ".pkl",
-    to_date: Timestamp = now_as_ts(),
+    to_date: Optional[Timestamp] = None,
     vs_currency: str = "usd",
     fileins: Optional[List[Path]] = None,
 ) -> None:
@@ -159,6 +160,7 @@ def create_coins_histdata(
     Get existing files and coinid, compare to see what are the missing files
     download the data to create them.
     """
+    _to_date = to_date if to_date is not None else now_as_ts()
     if fileins is None:
         new_coinids = set(get_coins_list(cg, update_local=False)) - set(
             read_local_files_in_df(folder, file_ext, with_details=True).stem
@@ -174,7 +176,7 @@ def create_coins_histdata(
             coinid,
             folder,
             file_ext=file_ext,
-            to_tsh=to_date,
+            to_tsh=_to_date,
             vs_currency=vs_currency,
             mode="bx" if file_ext == ".pkl" else "x",
         )
@@ -184,11 +186,12 @@ def renew_coins_histdata(
     cg: CoinGeckoAPI,
     folder: Path,
     file_ext: str = ".pkl",
-    to_date: Timestamp = now_as_ts(),
+    to_date: Optional[Timestamp] = None,
     vs_currency: str = "usd",
     fileins: Optional[List[Path]] = None,
 ) -> None:
     """Rewrite all database with data up 'to_date'"""
+    _to_date = to_date if to_date is not None else now_as_ts()
     if fileins is None:
         new_coin_ids = get_coins_list(cg, update_local=True)
     else:
@@ -201,7 +204,7 @@ def renew_coins_histdata(
             coinid,
             folder,
             file_ext=file_ext,
-            to_tsh=to_date,
+            to_tsh=_to_date,
             vs_currency=vs_currency,
             mode="bw" if file_ext == ".pkl" else "w",
         )
@@ -327,7 +330,6 @@ def main_prg():
     os.makedirs(args.folder, exist_ok=True)
 
     cg = CoinGeckoAPI()
-    logger.info(f"{args.action}")
     # action_help = "UPDATE-ALL, CREATE-ALL, RENEW-ALL, UPDATE-COINS, CREATE-COINS, LIST-COINS"
 
     fileins = parse_coins_id_to_filename(cg, args.coins, args.folder, args.filefmt)
@@ -341,7 +343,7 @@ def main_prg():
 
     if args.action.upper() == "UPDATE":
         update_time = "18:50"
-        kwargs.update({"age": Timedelta(f"{args.age}h"), "to_date": now_as_ts()})
+        kwargs["age"] = Timedelta(f"{args.age}h")
         logger.info(f"Updating and then runing a daily update at {update_time}")
 
         scheduler = SafeScheduler()
@@ -367,7 +369,7 @@ def main_prg():
         )
 
     elif args.action.upper() == "UPDATE-COINS":
-        kwargs.update({"age": Timedelta(f"{args.age}h"), "to_date": now_as_ts()})
+        kwargs["age"] = Timedelta(f"{args.age}h")
         update_coins_histdata(cg, **kwargs)
 
     logger.info("***The End***")

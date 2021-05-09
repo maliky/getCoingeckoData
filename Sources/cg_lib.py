@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ~/Python/Env_sys/KolaVizPrj/KolaViz/Lib/fnames.py voir
 from time import sleep
-from typing import Union, Sequence, Dict
+from typing import Union, Sequence, Dict, Optional
 from pathlib import Path
 import os
 from os.path import getmtime
@@ -182,6 +182,14 @@ def retry(func, *args, **kwargs):
             )
 
     return None
+
+
+def get_file_age(_file: Union[str, Path], _now: Optional[Timestamp] = None) -> Timedelta:
+    """Return the age of a faile relative to _now"""
+    if _now is None:
+        return now_as_ts() - Timestamp(getmtime(_file), unit="s").round('s')
+    else:
+        return _now - Timestamp(getmtime(_file), unit="s").round('s')
 
 
 def is_old(_file: Union[str, Path], age: Timedelta = DFT_OLDAGE):
