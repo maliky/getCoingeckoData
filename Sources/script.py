@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 from time import sleep
-from typing import List, Optional
+from typing import List, Optional, Sequence
 from argparse import ArgumentParser
 from sys import exit
 import os
@@ -21,15 +21,14 @@ from Sources.cg_io import (
 )  # log
 
 from Sources.cg_lib import (
+    w_get_coin_by_id,
+    w_get_coins_list,
     get_file_age,
     is_old,
     check_mode,
     get_coins_list,
     w_get_coin_market_chart_range_by_id,
 )  # log, set, time, io, deco, fmt
-
-# TODO: permettre l'update d'une plage de coins (eg. de bit.. à coin..)
-# revoir le type de args.folder and folder
 
 
 def download_coinid_for_date_range(
@@ -50,7 +49,8 @@ def download_coinid_for_date_range(
     - x only create new file, raise if exisiting untouch
     - w rewrite datafile with given tsh (human ts)
     - a+ update data of datafile
-    - to_tsh can be a callable object in which case calle simply it should retrun a timestamp
+    - to_tsh can be a callable object in which case calle simply it should retrun a 
+    timestamp
     """
 
     # _to_tsh = to_tsh() if inspect.__builtins__["callable"](to_tsh) else to_tsh
@@ -212,7 +212,13 @@ def renew_coins_histdata(
         )
 
 
-def parse_coins_id_to_filename(
+def parse_ids_to_filename(
+    coins_ids: Sequence[str], folder: Path, file_ext: str = ".pkl"
+) -> Optional[List[Path]]:
+    return sorted([folder.joinpath(f"{_id}{file_ext}") for _id in coins_ids])
+
+
+def parse_args_id_to_ids(
     cg: CoinGeckoAPI, args_coins, folder: Path, file_ext: str = ".pkl", coins_ids_=None
 ) -> Optional[List[Path]]:
     """
@@ -246,7 +252,7 @@ def parse_coins_id_to_filename(
     unknown_ids = _ids - set(coins_ids)
     assert len(unknown_ids) == 0, f"{_ids} and {coins_ids}, unknown_ids={unknown_ids}"
 
-    return sorted([folder.joinpath(f"{_id}{file_ext}") for _id in _ids])
+    return _ids
 
 
 def parse_plage_of_coin(coins_ids: Series, arg_coin: str):
@@ -274,19 +280,20 @@ def parse_args():
     )
     action_dft = "UPDATE"
     action_help = (
-        "UPDATE: check the coins on the disk update them with latest data. do so regularly\n"
+        "UPDATE: check the coins on the disk update them with latest data. "
+        "do so regularly\n"
         "CREATE: make sure all data on disk has the coins from the API.\n"
         "RENEW: a mix of CREATE and UPDATE.\n"
-        "LIST-COINS"
+        "INFO: get coins infos (capitalisation) for example.\n"
+        "LIST-COINS: list possible coins"
     )
 
     coins_ids_dft = "bitcoin,cardano"
     coins_ids_help = (
         " Specify which coin to get.  Can be a coinid (see action LIST-COINS)"
-        f", a list of coinid 'id1,id2,id3' or a range 'idx-idy' {coins_ids_dft}"
+        f", a list of coinid 'id1,id2,id3' or a range 'idx-idy' {coins_ids_dft}."
+        f"  Set this to 'all' to get all possible coins"
     )
-    sort_dft = "alphabetical"
-    sort_help = "a sort order to handle coins before action, can be market-cap, price, mtime, size"
 
     folder_dft = Path("./data/historical-capitalisation")
     folder_help = f"Name of the data folder root (def. {folder_dft.as_posix()})"
@@ -307,7 +314,6 @@ def parse_args():
     parser.add_argument("--age", "-a", default=age_dft, help=age_hlp)
     parser.add_argument("--logLevel", "-L", help=logLevel_help, default=logLevel_dft)
     parser.add_argument("--coins", "-c", help=coins_ids_help, default=coins_ids_dft)
-    parser.add_argument("--sort", "-s", help=sort_help, default=sort_dft)
     parser.add_argument(
         "--vsCurrency", "-v", help=vsCurrency_help, default=vsCurrency_dft
     )
@@ -316,6 +322,29 @@ def parse_args():
     parser.add_argument("--action", "-A", help=action_help, default=action_dft)
 
     return parser.parse_args()
+
+
+def get_coins_infos(folder: str, coins_list_id: Optional[Sequence[str]] = None):
+    """télécharge les données en détail pour les coins"""
+    if coins_list_id is None:
+        _coins_list_id = w_get_coins_list(as_df=True).loc[:, "id"]
+    else:
+        _coins_list_id = coins_list_id
+
+    # we don't need those details
+    details = ["tickers", "localization", "market_data", "sparkline"]
+    kwargs = {k: "false" for k in details}
+
+    coins_infos = {}
+    for (i, _id) in enumerate(_coins_list_id):
+        logger.info(f"{i+1}/{len(_coins_list_id)}: INFO for {_id}")
+        coins_infos[_id] = w_get_coin_by_id(_id, as_series=True, **kwargs)
+
+    filename = Path(folder).joinpath("coins_infos.pkl")
+    save_data_with_ext(filename, coins_infos, "bw")
+
+    logger.info(f"Detailed-info for {len(coins_infos)} stored in {filename}")
+    return None
 
 
 def main_prg():
@@ -333,8 +362,8 @@ def main_prg():
 
     cg = CoinGeckoAPI()
     # action_help = "UPDATE-ALL, CREATE-ALL, RENEW-ALL, UPDATE-COINS, CREATE-COINS, LIST-COINS"
-
-    fileins = parse_coins_id_to_filename(cg, args.coins, args.folder, args.filefmt)
+    coins_ids = parse_args_id_to_ids(cg, args.coins, args.folder, args.filefmt)
+    fileins = parse_ids_to_filename(coins_ids, args.folder, args.filefmt)
 
     kwargs = {
         "folder": args.folder,
@@ -370,7 +399,7 @@ def main_prg():
             cg, folder=args.folder, file_ext=args.filefmt, vs_currency=args.vsCurrency,
         )
 
-    elif args.action.upper() == "UPDATE-COINS":
+    elif args.action.upper() == "INFO":
         kwargs["age"] = Timedelta(f"{args.age}h")
         update_coins_histdata(cg, **kwargs)
 

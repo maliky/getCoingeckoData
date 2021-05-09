@@ -109,6 +109,13 @@ def get_coins_list(
 
 
 @w_retry()
+@as_pd_object("Series")
+def w_get_coin_by_id(_id, **kwargs):
+    """Juste a easy wrapper around the standard api function"""
+    return cg.get_coin_by_id(_id, **kwargs)
+
+
+@w_retry()
 def w_get_coin_market_chart_range_by_id(
     cg: CoinGeckoAPI,
     id_: str = "cardano",
@@ -184,12 +191,14 @@ def retry(func, *args, **kwargs):
     return None
 
 
-def get_file_age(_file: Union[str, Path], _now: Optional[Timestamp] = None) -> Timedelta:
+def get_file_age(
+    _file: Union[str, Path], _now: Optional[Timestamp] = None
+) -> Timedelta:
     """Return the age of a faile relative to _now"""
     if _now is None:
-        return now_as_ts() - Timestamp(getmtime(_file), unit="s").round('s')
+        return now_as_ts() - Timestamp(getmtime(_file), unit="s").round("s")
     else:
-        return _now - Timestamp(getmtime(_file), unit="s").round('s')
+        return _now - Timestamp(getmtime(_file), unit="s").round("s")
 
 
 def is_old(_file: Union[str, Path], age: Timedelta = DFT_OLDAGE):
