@@ -30,6 +30,8 @@ from Sources.cg_lib import (
     w_get_coin_market_chart_range_by_id,
 )  # log, set, time, io, deco, fmt
 
+# TODO check if interesting to a detailled range download.
+
 
 def download_coinid_for_date_range(
     cg: CoinGeckoAPI,
@@ -133,7 +135,10 @@ def update_coins_histdata(
         ages = sorted([(get_file_age(f), f) for f in fileins])
         fileins = Series(fileins).loc[mask]
         log_msg += f"of which {len(fileins)} were CHANGED more than {age} ago."
-        log_msg += f"the newest is {ages[0]} and the oldest {ages[-1]}"
+        log_msg += (
+            f"the newest is {ages[0][1].as_posix()} {ages[0][0]}, "
+            f"and the oldest {ages[-1][1].as_posix()} {ages[-1][0]}."
+        )
 
     logger.info(log_msg)
     for (i, fi) in enumerate(fileins):
@@ -356,7 +361,7 @@ def main_prg():
     args = parse_args()
 
     logger.setLevel(args.logLevel)
-    logger.info(f"Starting main programme with {args} ")
+    logger.debug(f"Starting main programme with {args} ")
 
     os.makedirs(args.folder, exist_ok=True)
 
