@@ -129,13 +129,12 @@ def update_coins_histdata(
     log_msg = f"{len(fileins)} files in {folder} "
     if age is not None:
         mask = map(lambda f: is_old(f, age), fileins)
+        ages = sorted([(get_file_age(f), f) for f in fileins])
         fileins = Series(fileins).loc[mask]
-        log_msg += f"of wich {len(fileins)} were CHANGED more than {age} ago."
-        if not len(fileins):
-            ages = sorted([(get_file_age(f), f) for f in fileins])
-            log_msg += f"  The oldest is only {ages[0]}."
-    logger.info(log_msg)
+        log_msg += f"of which {len(fileins)} were CHANGED more than {age} ago."
+        log_msg += f"the newest is {age[0]} and the oldest {age[-1]}"
 
+    logger.info(log_msg)
     for (i, fi) in enumerate(fileins):
         logger.info(f"{i+1}/{len(fileins)}: Updating {fi}")
         _ = download_coinid_for_date_range(
