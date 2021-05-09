@@ -131,7 +131,9 @@ def update_coins_histdata(
         mask = map(lambda f: is_old(f, age), fileins)
         fileins = Series(fileins).loc[mask]
         log_msg += f"of wich {len(fileins)} were CHANGED more than {age} ago."
-
+        if not len(fileins):
+            ages = sorted([(get_file_age(f), f) for f in fileins])
+            log_msg += f"  The oldest is only {ages[0]}."
     logger.info(log_msg)
 
     for (i, fi) in enumerate(fileins):
