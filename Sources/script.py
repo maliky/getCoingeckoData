@@ -220,7 +220,9 @@ def renew_coins_histdata(
 def parse_ids_to_filename(
     coins_ids: Sequence[str], folder: Path, file_ext: str = ".pkl"
 ) -> Optional[List[Path]]:
-    return sorted([folder.joinpath(f"{_id}{file_ext}") for _id in coins_ids])
+    if coins_ids is not None:
+        return sorted([folder.joinpath(f"{_id}{file_ext}") for _id in coins_ids])
+    return None
 
 
 def parse_args_id_to_ids(
