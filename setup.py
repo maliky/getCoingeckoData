@@ -26,7 +26,9 @@ setup(
     python_requires=">=3.8",
     entry_points={
         "console_scripts": [
-            "getCoingeckoData=getCoingeckoData.getCoingeckoData:main_prg",
+            "getCoingeckoData=Sources.script:main_prg",
+            "getCoinInfos=Sources.get_coins_infos:main_prg"
+            "getCoingeckoData_old=Sources.get_cg_data:main_prg",
         ]
     },
     install_requires=[

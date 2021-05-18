@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
+"""
+Set up the logger object used in most files.
+"""
 
 LOGFMT = "%(asctime)s %(levelno)s /%(filename)s@%(lineno)s/ %(message)s"
 logging.basicConfig(level="INFO", format=LOGFMT)

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 # ~/Python/Env_sys/KolaVizPrj/KolaViz/Lib/fnames.py voir
+"""
+File with function handling IO
+"""
 from typing import Union, Dict
 from pathlib import Path
 import os

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""File to get info about coins"""
 from pickle import dump, load
 from time import sleep
 from typing import Dict
@@ -97,8 +98,10 @@ def load_local_coins_infos(folder: str, save: bool = True) -> DataFrame:
     return df
 
 
-def main(cg):
+def main_prg():
     """télécharge les données en détail pour les coins"""
+    cg = CoinGeckoAPI()
+
     info_folder = "./data/Coins_infos"
     if os.path.exists(info_folder):
         logger.info(f"Redownloading infos in {info_folder}")
@@ -108,5 +111,5 @@ def main(cg):
 
 
 if __name__ == "__main__":
-    cg = CoinGeckoAPI()
-    main(cg)
+    main_prg()
+    exit()

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from typing import Union, Optional, Sequence
+from typing import Union, Sequence
 from pandas import Timestamp, Series, DataFrame, date_range, Timedelta
 from math import floor
 
-
-"""cg_times.py  : Utilities working with time object"""
+"""cg_times.py  : Utilities for working with time object"""
 
 
 def get_recent_data(df: DataFrame, delta=Timedelta(30, "d")) -> DataFrame:
@@ -106,3 +105,15 @@ def ts_extent(ref_: Union[Series, DataFrame], as_unix_ts_=False):
                 tsh if tsh_converted is None else tsh_converted,
             )
         )
+
+
+def coerce_ts(ts_: Union[str, Timestamp]):
+    """Convertis un ts string en Timesstamp"""
+    if isinstance(ts_, str):
+        return Timestamp(ts_)
+    if isinstance(ts_, Timestamp):
+        return ts_
+
+    raise Exception(f"Check type of ts_ {ts_}")
+
+    

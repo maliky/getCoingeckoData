@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-"""main file getcg_data.py. pour récupérer les données avec coingecko"""
+"""
+main get data with maximun resolution for a specific coin from coingecko (depreciated)
+Can be acheived with the script
+"""
 from time import sleep
-from typing import Union
-
 import argparse
 import os
 import platform  # handle os check
@@ -13,7 +14,7 @@ from pandas import DataFrame, to_datetime, Timestamp, concat, set_option
 import pycoingecko as pcg
 
 from Sources.cg_logging import logger
-from Sources.cg_times import get_ts_data
+from Sources.cg_times import get_ts_data, coerce_ts
 
 # setting the default time zone for the system
 if platform.system() == "Linux":
@@ -26,38 +27,26 @@ else:
 STRF = "%Y-%m-%d__%H_%M"  # default time format for saving the data
 
 
-def market_chart_range_to_df(_dict:dict):
+def market_chart_range_to_df(_dict: dict):
     """Get a result from the coingecko API et le renvois en DataFrame."""
-    _R = None
-    first_pass = True
+
     # on parcours les élèments du dictionnaire
-    for titre, data in _dict.items():
-        if first_pass:
+    for i, (titre, data) in enumerate(_dict.items()):
+        if i == 0:
             _R = cg_api_to_df(data, titre)
-            first_pass = not first_pass
         else:
             _R = concat([_R, cg_api_to_df(data, titre).drop("ts", axis=1)], axis=1)
 
     return _R
 
 
-def cg_api_to_df(data_, keys_:str="value") ->DataFrame:
+def cg_api_to_df(data_, keys_: str = "value") -> DataFrame:
     "Transforme une liste avec une colonne de timestamp en dataframe"
     return DataFrame(
         index=to_datetime(np.array(data_).T[0] * 1e6).round("s"),
         data=data_,
         columns=["ts", keys_],
     )
-
-
-def coerce_ts(ts_: Union[str, Timestamp]):
-    """Convertis un ts string en Timesstamp"""
-    if isinstance(ts_, str):
-        return Timestamp(ts_)
-    if isinstance(ts_, Timestamp):
-        return ts_
-
-    raise Exception(f"Check type of ts_ {ts_}")
 
 
 def getcg_market_trades(
@@ -74,14 +63,12 @@ def getcg_market_trades(
         else fout_
     )
 
-    df = None
-    first_pass = True
     # créer un dictionnaire avec divers objets temporels utiles
     date_couple = get_ts_data(coerce_ts(from_), coerce_ts(to_))["h_bins"]
 
     with open(fout_, "w") as fd:
 
-        for _from, _to in date_couple:
+        for i, (_from, _to) in enumerate(date_couple):
 
             print(_from, _to, end="\r")
             from_ts, to_ts = _from.timestamp(), _to.timestamp()
@@ -90,22 +77,20 @@ def getcg_market_trades(
                 id_, vs_currency_, from_ts, to_ts
             )
             # change the dictionnary returned by the API in a DataFrame
-            _tmp = market_chart_range_to_df(_tmp)
+            _tmp_df = market_chart_range_to_df(_tmp)
             # et concatène le résultat dans une grande dataFrame
-            if first_pass:
-                df = _tmp
+            if i == 0:
+                df = _tmp_df
                 header = True
-                first_pass = not first_pass
             else:
-                df = concat([df, _tmp], axis=0)
+                df = concat([df, _tmp_df], axis=0)
                 header = False
 
             sleep(pause_)
 
-            # finaly write down the results
-            # try to do that without loading the memory.
-
-            df.to_csv(fd, header=header)
+        # finaly write down the results
+        # try to do that without loading the memory.
+        df.to_csv(fd, header=header)
     logger.warning(f"data in {fout_}")
     return df
 
