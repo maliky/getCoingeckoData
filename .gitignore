@@ -1,25 +1,25 @@
-TODO*
-Ressources
-*png
-*~
-*/data/*
-build/
-__pycache__
-.python-version
+data/*
+build/*
 bin/*
 lib/*
+dist/
+*egg-info/
+Data/
+Notebooks/*
+TODO*
+*png
+*~
 pyvenv.cfg
 btxData*
 tmp*
 # a link to private keys
 kola*
 *cache
-dist/
-*egg-info/
 README.org
 *csv
 *.ipynb
-Data/
 setup.cfg
 .dir-locals.el
+__pycache__
+.python-version
 
