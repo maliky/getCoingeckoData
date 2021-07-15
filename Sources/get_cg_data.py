@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
-"""main file getcg_data.py. pour récupérer les données avec coingecko"""
+"""
+main get data with maximun resolution for a specific coin from coingecko (depreciated)
+Can be acheived with the script
+"""
 from time import sleep
-
 import argparse
-import logging
 import os
 import platform  # handle os check
 import sys
 import numpy as np
 
-from pandas import DataFrame, date_range, to_datetime, Timestamp, concat, set_option
-from pathlib import Path
-
+from pandas import DataFrame, to_datetime, Timestamp, concat, set_option
 import pycoingecko as pcg
 
-logger = logging.getLogger()
-logger.setLevel("INFO")
+from Sources.cg_logging import logger
+from Sources.cg_times import get_ts_data, coerce_ts
 
 # setting the default time zone for the system
 if platform.system() == "Linux":
@@ -27,60 +26,27 @@ else:
 
 STRF = "%Y-%m-%d__%H_%M"  # default time format for saving the data
 
-# les dates
-def get_ts_data(start_tsh_, end_tsh_, freq_="1d"):
-    """
-    Créer des bins avec les dates de départ et la fréquence freq
-    Renvoi un dictionnaire avec 
-    - bins, couple de date
-    - h_bins, couple des dates au format humain
-    - range, une liste de date de start_tsh à end_tsh
-    espacé par freq_
-    - h_range: comme au dessus mais avec les dates humaines
-    """
-    # créer deux ensembles de date de start à end
-    tsh_range = date_range(start_tsh_, end_tsh_, freq=freq_)
-    ts_range = list(map(lambda ts: ts.timestamp() * 10 ** 6, tsh_range))
 
-    return {
-        "bins": list(zip(ts_range[:-1], ts_range[1:])),
-        "h_bins": list(zip(tsh_range[:-1], tsh_range[1:])),
-        "h_range": tsh_range,
-        "range": ts_range,
-    }
-
-
-def market_chart_range_to_df(_dict):
+def market_chart_range_to_df(_dict: dict):
     """Get a result from the coingecko API et le renvois en DataFrame."""
-    _R = None
 
-    # on parcours les élèments du dictionnair
-    for titre, data in _dict.items():
-        _R = (
-            cg_api_to_df(data, titre)
-            if _R is None
-            else concat([_R, cg_api_to_df(data, titre).drop("ts", axis=1)], axis=1)
-        )
+    # on parcours les élèments du dictionnaire
+    for i, (titre, data) in enumerate(_dict.items()):
+        if i == 0:
+            _R = cg_api_to_df(data, titre)
+        else:
+            _R = concat([_R, cg_api_to_df(data, titre).drop("ts", axis=1)], axis=1)
+
     return _R
 
 
-def cg_api_to_df(data_, keys_="value"):
+def cg_api_to_df(data_, keys_: str = "value") -> DataFrame:
     "Transforme une liste avec une colonne de timestamp en dataframe"
     return DataFrame(
-        index=to_datetime(np.array(data_).T[0] * 10 ** 6).round("s"),
+        index=to_datetime(np.array(data_).T[0] * 1e6).round("s"),
         data=data_,
         columns=["ts", keys_],
     )
-
-
-def coerce_ts(ts_):
-    """Convertis un ts string en Timesstamp"""
-    if isinstance(ts_, str):
-        return Timestamp(ts_)
-    if isinstance(ts_, Timestamp):
-        return ts_
-
-    raise Exception(f"Check type of ts_ {ts_}")
 
 
 def getcg_market_trades(
@@ -91,16 +57,18 @@ def getcg_market_trades(
     """
     sess = pcg.CoinGeckoAPI()
     set_option("display.precision", 8)
-    fout_ = f"cg_data-{from_.strftime(STRF)}-{to_.strftime(STRF)}.csv" if fout_ is None else fout_
-
-    df = None
+    fout_ = (
+        f"cg_data-{from_.strftime(STRF)}-{to_.strftime(STRF)}.csv"
+        if fout_ is None
+        else fout_
+    )
 
     # créer un dictionnaire avec divers objets temporels utiles
     date_couple = get_ts_data(coerce_ts(from_), coerce_ts(to_))["h_bins"]
 
     with open(fout_, "w") as fd:
 
-        for _from, _to in date_couple:
+        for i, (_from, _to) in enumerate(date_couple):
 
             print(_from, _to, end="\r")
             from_ts, to_ts = _from.timestamp(), _to.timestamp()
@@ -109,29 +77,30 @@ def getcg_market_trades(
                 id_, vs_currency_, from_ts, to_ts
             )
             # change the dictionnary returned by the API in a DataFrame
-            _tmp = market_chart_range_to_df(_tmp)
+            _tmp_df = market_chart_range_to_df(_tmp)
             # et concatène le résultat dans une grande dataFrame
-            if df is None:
-                df = _tmp
+            if i == 0:
+                df = _tmp_df
                 header = True
             else:
-                df = concat([df, _tmp], axis=0)
+                df = concat([df, _tmp_df], axis=0)
                 header = False
 
             sleep(pause_)
 
-            # finaly write down the results
-            # try to do that without loading the memory.
-
-            df.to_csv(fd, header=header)
+        # finaly write down the results
+        # try to do that without loading the memory.
+        df.to_csv(fd, header=header)
     logger.warning(f"data in {fout_}")
     return df
 
 
 def parse_args():
     """Settings the applications's arguments and options."""
-    description = """An application to download bitmex's data with what ever resolution you need."""
-    fout_dft = "cg-data"
+    description = (
+        """An application to download Coingecko data with maximun resolution."""
+    )
+    fout_dft = "cg_data"
     fout_help = (
         f"base Name of the csv file where to save the results. (default {fout_dft}.csv)"
     )

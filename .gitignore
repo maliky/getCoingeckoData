@@ -1,21 +1,25 @@
-pycoingecko
-*~
-build/
-__pycache__
-.python-version
+data/*
+build/*
 bin/*
 lib/*
-pyvenv.cfg
-tmp*
-*cache
 dist/
 *egg-info/
+Data/
+Notebooks/*
+TODO*
+*png
+*~
+pyvenv.cfg
+btxData*
+tmp*
+# a link to private keys
+kola*
+*cache
 README.org
 *csv
-*ipynb
-*.ipynb*
-Data/
+*.ipynb
 setup.cfg
 .dir-locals.el
-TODO.org
+__pycache__
+.python-version
 
