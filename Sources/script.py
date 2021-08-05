@@ -294,8 +294,8 @@ def parse_args():
         "do so regularly\n"
         "CREATE: make sure all data on disk has the coins from the API.\n"
         "RENEW: a mix of CREATE and UPDATE.\n"
-        "INFO: get coins infos (capitalisation) for example.\n"
-        "LIST-COINS: list possible coins"
+        # "INFO: get coins infos (capitalisation) for example.\n"
+        # "LIST-COINS: list possible coins"
     )
 
     coins_ids_dft = "bitcoin,cardano"
@@ -360,7 +360,7 @@ def get_coins_infos(folder: str, coins_list_id: Optional[Sequence[str]] = None):
 def main_prg():
     """
     Run the main programme.
-    It connects to Coingecko API, and dowload or update capitalisation data
+    It connects to Coingecko API, and download or update capitalisation data
     Save the data on disk.
     """
     args = parse_args()
@@ -409,9 +409,9 @@ def main_prg():
             cg, folder=args.folder, file_ext=args.filefmt, vs_currency=args.vsCurrency,
         )
 
-    elif args.action.upper() == "INFO":
-        kwargs["age"] = Timedelta(f"{args.age}h")
-        update_coins_histdata(cg, **kwargs)
+    # elif args.action.upper() == "INFO":
+    #     kwargs["age"] = Timedelta(f"{args.age}h")
+    #     update_coins_histdata(cg, **kwargs)
 
     logger.info("***The End***")
     return None
