@@ -27,8 +27,7 @@ setup(
     entry_points={
         "console_scripts": [
             "getCoingeckoData=Sources.script:main_prg",
-            "getCoinInfos=Sources.get_coins_infos:main_prg"
-            "getCoingeckoData_old=Sources.get_cg_data:main_prg",
+            "getCoinInfos=Sources.get_coins_infos:main_prg",
         ]
     },
     install_requires=[
