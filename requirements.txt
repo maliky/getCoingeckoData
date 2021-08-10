@@ -1,5 +1,0 @@
-schedule
-pandas
-numpy
-requests
-pycoingecko

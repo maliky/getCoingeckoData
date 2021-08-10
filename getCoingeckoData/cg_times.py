@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Union, Sequence
+from typing import Uniont, Sequence
 from pandas import Timestamp, Series, DataFrame, date_range, Timedelta
 from math import floor
 
@@ -71,40 +71,6 @@ def coerce_from_tsh_to_int(tss: Sequence) -> Sequence:
         return ts
 
     return list(map(_to_ts, tss))
-
-
-def ts_extent(ref_: Union[Series, DataFrame], as_unix_ts_=False):
-    """
-    Return extrems of a iterable.
-    if a dataframe is passed to ref_ return the extent of its index
-    if as_unix_ts is True, suppors the iterable avec a timestamp method
-    """
-    if len(ref_) == 0:
-        return None, None
-
-    _idx = ref_.index if isinstance(ref_, (DataFrame, Series)) else ref_
-
-    tsh = _idx[0], _idx[-1]
-    try:
-        tsh_converted = None
-        _idx[0].timestamp()
-    except Exception:
-        # raise f"tsh ={tsh} should be timestamp"
-        def _to_ts(t):
-            return Timestamp(t * 1e9)
-
-        tsh_converted = list(map(_to_ts, tsh))
-
-    if not as_unix_ts_:
-        return tsh if tsh_converted is None else tsh_converted
-    else:
-        # assert
-        return list(
-            map(
-                lambda x: int(x.timestamp()),
-                tsh if tsh_converted is None else tsh_converted,
-            )
-        )
 
 
 def coerce_ts(ts_: Union[str, Timestamp]):

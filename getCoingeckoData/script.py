@@ -10,17 +10,17 @@ from os.path import exists, getsize
 from pandas import concat, Timestamp, DataFrame, Timedelta, Series
 from pycoingecko.api import CoinGeckoAPI
 
-from Sources.cg_logging import logger  #
-from Sources.cg_times import now_as_ts, ts_extent  #
-from Sources.cg_settings import DATEGENESIS  #
-from Sources.cg_scheduling import SafeScheduler  # log
-from Sources.cg_io import (
+from getCoingeckoData.cg_logging import logger  #
+from getCoingeckoData.cg_times import now_as_ts, ts_extent  #
+from getCoingeckoData.cg_settings import DATEGENESIS  #
+from getCoingeckoData.cg_scheduling import SafeScheduler  # log
+from getCoingeckoData.cg_io import (
     load_with_ext,
     save_data_with_ext,
     read_local_files_in_df,
 )  # log
 
-from Sources.cg_lib import (
+from getCoingeckoData.cg_lib import (
     w_get_coin_by_id,
     w_get_coins_list,
     get_file_age,

@@ -6,8 +6,8 @@ from pandas import DataFrame, Series
 from inspect import signature, Parameter, functools
 from functools import wraps
 
-from Sources.cg_settings import APISLEEP  #
-from Sources.cg_logging import logger  #
+from getCoingeckoData.cg_settings import APISLEEP  #
+from getCoingeckoData.cg_logging import logger  #
 
 """cg_decorators.py"""
 

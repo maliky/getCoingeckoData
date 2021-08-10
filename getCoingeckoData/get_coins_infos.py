@@ -9,11 +9,11 @@ from pathlib import Path
 from pandas import DataFrame, Series
 from pycoingecko.api import CoinGeckoAPI
 
-from Sources.cg_decorators import w_retry, as_pd_object
-from Sources.cg_io import get_local_stem_from_folder, read_local_files_in_df
-from Sources.cg_settings import APISLEEP
-from Sources.cg_logging import logger
-from Sources.cg_lib import get_coins_list
+from getCoingeckoData.cg_decorators import w_retry, as_pd_object
+from getCoingeckoData.cg_io import get_local_stem_from_folder, read_local_files_in_df
+from getCoingeckoData.cg_settings import APISLEEP
+from getCoingeckoData.cg_logging import logger
+from getCoingeckoData.cg_lib import get_coins_list
 
 
 @w_retry()
@@ -79,7 +79,7 @@ def download_coins_infos(
 
 
 def load_local_coins_infos(folder: str, save: bool = True) -> DataFrame:
-    """Read file in folder in one DataFrame"""
+    """Read file in folder in one DataFrame and optionaly save it to coins_infos_list.csv"""
     _df = {}
     coins_infos_list = read_local_files_in_df(folder)
     for (i, fn) in enumerate(coins_infos_list.fullname):
@@ -89,7 +89,7 @@ def load_local_coins_infos(folder: str, save: bool = True) -> DataFrame:
 
     df = DataFrame(_df).T
     if save:
-        fn = Path(folder).parent.joinpath("coins_infos_list.pkl")
+        fn = Path(folder).parent.joinpath("coins_infos_list.csv")
         with open(fn, "bw") as fd:
             dump(df, fd)
             logger.info(f"Dumping coins infos summary in {fn}")

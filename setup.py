@@ -14,7 +14,7 @@ with open("README.rst", "r") as f:
 
 setup(
     name="getCoingeckoData",
-    version="1.0.0",
+    version="1.0.3",
     description="Utility to download coinGecko price data for all coins",
     long_description=long_description,
     long_description_content_type="text/x-rst",
@@ -26,8 +26,8 @@ setup(
     python_requires=">=3.8",
     entry_points={
         "console_scripts": [
-            "getCoingeckoData=Sources.script:main_prg",
-            "getCoinInfos=Sources.get_coins_infos:main_prg",
+            "get_coingecko_data=getCoingeckoData.script:main_prg",
+            "get_coingecko_infos=getCoingeckoData.get_coins_infos:main_prg",
         ]
     },
     install_requires=[
