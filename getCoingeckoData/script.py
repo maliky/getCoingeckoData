@@ -170,10 +170,12 @@ def create_coins_histdata(
     _to_date = to_date if to_date is not None else now_as_ts()
     if fileins is None:
         _local_files = read_local_files_in_df(folder, file_ext, with_details=True)
+        stems_set = set(_local_files.loc[:,'stem']) if len(_local_files) else set()
         try:
-            new_coinids = set(get_coins_list(cg, update_local=False)) - set(_local_files.loc[:,'stem'])
-        except Exception:
-            print(f'pb avec structure de read_local_files_in_df {describe(read_local_files_in_df)}')
+            new_coinids = set(get_coins_list(cg, update_local=False)) - stems_set
+        except Exception as e:
+            print(f'folder={folder}, file_ext={file_ext}')
+            raise e
     else:
         new_coinids = [f.stem for f in fileins]
 
