@@ -71,12 +71,13 @@ def w_get_coins_list(cg: CoinGeckoAPI) -> DataFrame:
 
 def get_coins_list(
     cg: CoinGeckoAPI,
-    token_list_fn: Path = Path("./data/simple_token_list.csv"),
+    token_list_fn: Path = Path("./Coingecko_data/simple_token_list.csv"),
     update_local: bool = True,
     simple: bool = True,
 ) -> Series:
     """
-    check if the folder/coin_list existe and if not fall back on an api call and populate it
+    Check if the folder/coin_list exists and read it, 
+    if not falls back on an API call, create it and populate it,
     if update_local we update the list with latest downloaded
     is simple then keep 'true' tokens not the long
     if update local, the token_list should be accessible
@@ -94,7 +95,7 @@ def get_coins_list(
 
     if update_local:
 
-        assert os.path.exists(token_list_fn), f"{token_list_fn} not accessible"
+        assert os.path.exists(token_list_fn), f"{token_list_fn} not accessible in {os.getcwdb()}.  You need to creat it"
         coin_list_id = read_csv(token_list_fn, index_col=0).id
 
         # logging some infos

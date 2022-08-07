@@ -10,14 +10,14 @@ from getCoingeckoData.cg_lib import format_data
 
 def main():
     """main programme"""
-    D = load_data("./data/all-historical-cap.pkl", logLevel="INFO")
+    D = load_data("./Coingecko_data/all-historical-cap.pkl", logLevel="INFO")
 
     E = format_data(D, logLevel="INFO")
 
     logger.info("Merging big df")
     J = concat([df for df in list(E.values())], axis=1)
 
-    save_data(J, fileout="./data/all-hc-df.pkl", logLevel="INFO")
+    save_data(J, fileout="./Coingecko_data/all-hc-df.pkl", logLevel="INFO")
 
     logger.info("Done !")
     exit

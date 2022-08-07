@@ -307,7 +307,7 @@ def parse_args():
         f"  Set this to 'all' to get all possible coins"
     )
 
-    folder_dft = Path("./data/historical-capitalisation")
+    folder_dft = Path("./Coingecko_data/historical-capitalisation")
     folder_help = f"Name of the data folder root (def. {folder_dft.as_posix()})"
 
     filefmt_dft = ".pkl"

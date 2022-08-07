@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-"""File to get info about coins"""
+"""Program to get info about coins"""
+from argparse import ArgumentParser
 from pickle import dump, load
 from time import sleep
 from typing import Dict
 import os.path
+import os
 from pathlib import Path
 
 from pandas import DataFrame, Series
@@ -21,11 +23,11 @@ from getCoingeckoData.cg_lib import get_coins_list
 def w_get_coin_by_id(
     cg: CoinGeckoAPI, _id: str, save: bool = False, **kwargs
 ) -> Series:
-    """Juste a easy wrapper around the standar api function"""
+    """Juste a easy wrapper around the standard API function"""
     coin_by_id = cg.get_coin_by_id(_id, **kwargs)
     sleep(APISLEEP())
     if save:
-        with open(f"./data/Coins_infos/{_id}", "bw") as fd:
+        with open(f"./Coingecko_data/Coins_infos/{_id}", "bw") as fd:
             dump(coin_by_id, fd)
 
     return Series(coin_by_id)
@@ -34,7 +36,7 @@ def w_get_coin_by_id(
 @as_pd_object("DataFrame")
 def download_coins_infos(
     cg: CoinGeckoAPI,
-    info_folder: str = "./data/Coins_infos",
+    info_folder: str = "./Coingecko_data/Coins_infos",
     to_save: bool = True,
     overwrite: bool = False,
 ) -> Dict:
@@ -50,7 +52,9 @@ def download_coins_infos(
         k: "false" for k in ["tickers", "localization", "market_data", "sparkline"]
     }
 
-    assert os.path.exists(info_folder)
+    assert os.path.exists(
+        info_folder
+    ), f"{info_folder} n'existe pas dans {os.getcwdb()}"
     if not overwrite:
         # we limite the coins that we want to download
         # and download only those not on the disk already
@@ -98,13 +102,42 @@ def load_local_coins_infos(folder: str, save: bool = True) -> DataFrame:
     return df
 
 
+def parse_args():
+    """Parse commande line argument."""
+    description = (
+        """Application to download information about coins listed by of coingecko"""
+    )
+
+    folder_dft = Path("./Coingecko_data")
+    folder_help = f"Name of the data folder root (def. {folder_dft.as_posix()})"
+
+    logLevel_dft = "INFO"
+    logLevel_help = f"Set the log level (def. {logLevel_dft})"
+
+    parser = ArgumentParser(description)
+
+    parser.add_argument("--logLevel", "-L", help=logLevel_help, default=logLevel_dft)
+    parser.add_argument("--folder", "-f", help=folder_help, default=folder_dft)
+
+    return parser.parse_args()
+
+
 def main_prg():
-    """télécharge les données en détail pour les coins"""
+    """Télécharge les données en détail pour les coins de Coingecko"""
+    args = parse_args()
+
+    logger.setLevel(args.logLevel)
+    logger.debug(f"Starting main programme with {args} ")
+
+    os.makedirs(args.folder, exist_ok=True)
     cg = CoinGeckoAPI()
 
-    info_folder = "./data/Coins_infos"
+    info_folder = f"./{args.folder}/Coins_infos"
+
     if os.path.exists(info_folder):
         logger.info(f"Redownloading infos in {info_folder}")
+    else:
+        os.makedirs(info_folder, exist_ok=True)
 
     download_coins_infos(cg, info_folder, to_save=True, overwrite=False)
     _ = load_local_coins_infos(info_folder)

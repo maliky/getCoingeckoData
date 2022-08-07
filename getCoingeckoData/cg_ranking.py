@@ -9,14 +9,14 @@ from get_coins_infos import load_local_coins_infos
 
 
 def get_categories_from_coins_infos(
-    fn: str = "./data/coins_infos_list.pkl", update=True
+    fn: str = "./Coingecko_data/coins_infos_list.pkl", update=True
 ):
     """
     Charge le fichier des infos et ne renvois que les catégories.
-    si update est true, recharge  depuis le dossiers './data/Coins_infos
+    si update est true, recharge  depuis le dossiers './Coingecko_data/Coins_infos
     """
     if update:
-        categories = load_local_coins_infos("./data/Coins_infos").categories
+        categories = load_local_coins_infos("./Coingecko_data/Coins_infos").categories
     else:
         with open(fn, "br") as fd:
             categories = load(fd).categories
@@ -25,7 +25,7 @@ def get_categories_from_coins_infos(
     return categories
 
 
-def get_categories_ranking(fn: str = "./data/coins_infos_list.pkl", categories=None):
+def get_categories_ranking(fn: str = "./Coingecko_data/coins_infos_list.pkl", categories=None):
     if categories is None:
         categories = get_categories_from_coins_infos(fn)
 
@@ -84,7 +84,7 @@ def get_coin_ranking(
     for each row order the columns and return them sorted associated with rank
     """
     if data is None:
-        with open("./data/interpolate-uniform-df.pkl", "br") as fd:
+        with open("./Coingecko_data/interpolate-uniform-df.pkl", "br") as fd:
             data = load(fd)
 
     # many assertion on _s name an index should be checked
@@ -124,7 +124,7 @@ def to_float(x) -> float:
 
 def main():
     """main"""
-    with open("./data/interpolate-uniform-df.pkl", "br") as fd:
+    with open("./Coingecko_data/interpolate-uniform-df.pkl", "br") as fd:
         data = load(fd)
 
     return get_coin_ranking(data)

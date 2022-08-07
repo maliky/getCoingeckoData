@@ -5,6 +5,7 @@ from math import floor
 
 """cg_times.py  : Utilities for working with time object"""
 
+
 def ts_extent(ref_: Union[Series, DataFrame], as_unix_ts_=False):
     """
     Return extrems of a iterable.
@@ -34,7 +35,7 @@ def ts_extent(ref_: Union[Series, DataFrame], as_unix_ts_=False):
                 tsh if tsh_converted is None else tsh_converted,
             )
         )
-    
+
 
 def get_recent_data(df: DataFrame, delta=Timedelta(30, "d")) -> DataFrame:
     """On suppose que l'index est un timestmap index"""
@@ -111,5 +112,3 @@ def coerce_ts(ts_: Union[str, Timestamp]):
         return ts_
 
     raise Exception(f"Check type of ts_ {ts_}")
-
-    
