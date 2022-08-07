@@ -35,6 +35,7 @@ setup(
         "numpy",
         "requests",
         "pycoingecko",  # coingecko python API
+        "schedule"
     ],
     extras_require={
         'dev': ['mypy', 'flake8', 'black'],
