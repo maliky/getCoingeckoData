@@ -67,9 +67,11 @@ def download_coins_infos(
         # making the request
         coin_info = w_get_coin_by_id(cg, _id, as_series=True, **kwargs)
         coin_info.index.name = "coin_id"
+
         if not to_save:
             logger.info(f"{i}/{len(coins_list)} : GETTING '{_id}'")
             coins_infos[_id] = coin_info
+
         elif to_save:
             coin_info_fn = Path(f"{info_folder}/{_id}.pkl")
 
@@ -83,9 +85,10 @@ def download_coins_infos(
 
 
 def load_local_coins_infos(folder: str, save: bool = True) -> DataFrame:
-    """Read file in folder in one DataFrame and optionaly save it to coins_infos_list.csv"""
+    """Read files in folder in one DataFrame and optionaly save it to coins_infos_list.csv"""
     _df = {}
     coins_infos_list = read_local_files_in_df(folder)
+    
     for (i, fn) in enumerate(coins_infos_list.fullname):
         print(f"loading {fn.stem} : {i+1}/{len(coins_infos_list.fullname)}", end="\r")
         with open(fn, "br") as fd:
@@ -123,7 +126,7 @@ def parse_args():
 
 
 def main_prg():
-    """Télécharge les données en détail pour les coins de Coingecko"""
+    """Télécharge les méta données pour les coins de Coingecko"""
     args = parse_args()
 
     logger.setLevel(args.logLevel)
@@ -132,14 +135,16 @@ def main_prg():
     os.makedirs(args.folder, exist_ok=True)
     cg = CoinGeckoAPI()
 
-    info_folder = f"./{args.folder}/Coins_infos"
+    info_folder = Path(f"./{args.folder}/Coins_infos")
 
     if os.path.exists(info_folder):
         logger.info(f"Redownloading infos in {info_folder}")
     else:
         os.makedirs(info_folder, exist_ok=True)
+        logger.info(f"Creating a new database in {info_folder}")
 
     download_coins_infos(cg, info_folder, to_save=True, overwrite=False)
+
     _ = load_local_coins_infos(info_folder)
 
 

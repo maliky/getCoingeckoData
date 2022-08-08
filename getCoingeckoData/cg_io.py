@@ -8,6 +8,7 @@ from pathlib import Path
 import os
 import os.path as op
 import logging
+
 logger = logging.getLogger()
 
 from pickle import dump, load
@@ -50,7 +51,9 @@ def save_data_with_ext(filename, df, mode, logLevel=None):
     fd.close()
 
     if logLevel is not None:
-        getattr(logger, logLevel.lower())(f"WROTE ({mode}, len(df)={len(df)}) to {filename} with SUCCESS!")
+        getattr(logger, logLevel.lower())(
+            f"WROTE ({mode}, len(df)={len(df)}) to {filename} with SUCCESS!"
+        )
     return True
 
 
@@ -69,7 +72,7 @@ def save_data_with_json(df, fd):
     df.to_json(fd)
 
 
-def open_file_for(files, stem="bitcoin", exactly:bool=False):
+def open_file_for(files, stem="bitcoin", exactly: bool = False):
     """
     Search and Open the files df for one and open it
     -if exactly is true the stem must match exactly
@@ -80,10 +83,10 @@ def open_file_for(files, stem="bitcoin", exactly:bool=False):
         file_with_stem = files.where(files.stem == stem).dropna()
     else:
         file_with_stem = files.where(files.stem.str.contains(stem)).dropna()
-        
+
     if len(file_with_stem) > 1:
         logger.info(f"{len(file_with_stem)} files found with '{stem}'.  Select one !")
-        return file_with_stem.loc[:,('stem','size','fullname')].sort_values('size')
+        return file_with_stem.loc[:, ("stem", "size", "fullname")].sort_values("size")
 
     if len(file_with_stem) == 1:
         _df = load_with_ext(file_with_stem.iloc[0].fullname)
@@ -91,7 +94,8 @@ def open_file_for(files, stem="bitcoin", exactly:bool=False):
         return _df
 
     else:
-        logger.info('No file found')
+        logger.info("No file found")
+
 
 def load_with_ext(
     fname: Path, mode="br", logLevel=None

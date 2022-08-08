@@ -235,7 +235,7 @@ def parse_args_id_to_ids(
     """
     Parse a list of coins and return a set of filename to processe
 
-    - args_coins : a small grammar to define what file shoulde be generated.
+    - args_coins : a small grammar to define what file should be generated.
     It should be comma separated expression where each expression is either
     a valid coinid or a range of coins define by to coins id separated by a comma
     ex, bitcoin,cardano,ether-filecoin
@@ -261,8 +261,8 @@ def parse_args_id_to_ids(
 
     # check the validity of the returned_ids
     _ids = set(_ids)
-    unknown_ids = _ids - set(coins_ids)
-    assert len(unknown_ids) == 0, f"{_ids} and {coins_ids}, unknown_ids={unknown_ids}"
+    unknown_ids = _ids - set(coins_ids.values)
+    assert len(unknown_ids) == 0, f"{_ids} and {coins_ids.values}, unknown_ids={unknown_ids}"
 
     return _ids
 
@@ -288,7 +288,7 @@ def parse_args():
     """Parse command line arguments"""
     # description, defaults and help
     description = (
-        """Application to download and update all coin listed by of coingecko"""
+        """Application to download and update information about coins listed by coingecko"""
     )
     action_dft = "UPDATE"
     action_help = (
@@ -302,7 +302,7 @@ def parse_args():
 
     coins_ids_dft = "bitcoin,cardano"
     coins_ids_help = (
-        " Specify which coin to get.  Can be a coinid (see action LIST-COINS)"
+        " Specify which coin to get.  Can be a coinid (see get_coingecko_infos)"
         f", a list of coinid 'id1,id2,id3' or a range 'idx-idy' {coins_ids_dft}."
         f"  Set this to 'all' to get all possible coins"
     )
@@ -337,7 +337,8 @@ def parse_args():
 
 
 def get_coins_infos(folder: str, coins_list_id: Optional[Sequence[str]] = None):
-    """télécharge les données en détail pour les coins"""
+    """Télécharge les données en détail pour les coins"""
+
     if coins_list_id is None:
         _coins_list_id = w_get_coins_list(as_df=True).loc[:, "id"]
     else:
@@ -374,11 +375,12 @@ def main_prg():
 
     cg = CoinGeckoAPI()
     # action_help = "UPDATE-ALL, CREATE-ALL, RENEW-ALL, UPDATE-COINS, CREATE-COINS, LIST-COINS"
-    coins_ids = parse_args_id_to_ids(cg, args.coins, args.folder, args.filefmt)
-    fileins = parse_ids_to_filename(coins_ids, args.folder, args.filefmt)
+    folder = Path(args.folder)
+    coins_ids = parse_args_id_to_ids(cg, args.coins, folder, args.filefmt)
+    fileins = parse_ids_to_filename(coins_ids, folder, args.filefmt)
 
     kwargs = {
-        "folder": args.folder,
+        "folder": folder,
         "file_ext": args.filefmt,
         "fileins": fileins,
         "vs_currency": args.vsCurrency,
@@ -404,16 +406,12 @@ def main_prg():
 
     elif args.action.upper() == "CREATE":
         create_coins_histdata(
-            cg, folder=args.folder, file_ext=args.filefmt, vs_currency=args.vsCurrency,
+            cg, folder=folder, file_ext=args.filefmt, vs_currency=args.vsCurrency,
         )
     elif args.action.upper() == "RENEW":
         renew_coins_histdata(
-            cg, folder=args.folder, file_ext=args.filefmt, vs_currency=args.vsCurrency,
+            cg, folder=folder, file_ext=args.filefmt, vs_currency=args.vsCurrency,
         )
-
-    # elif args.action.upper() == "INFO":
-    #     kwargs["age"] = Timedelta(f"{args.age}h")
-    #     update_coins_histdata(cg, **kwargs)
 
     logger.info("***The End***")
     return None
