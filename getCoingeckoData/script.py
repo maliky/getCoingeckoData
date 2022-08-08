@@ -51,7 +51,7 @@ def download_coinid_for_date_range(
     - x only create new file, raise if exisiting untouch
     - w rewrite datafile with given tsh (human ts)
     - a+ update data of datafile
-    - to_tsh can be a callable object in which case calle simply it should retrun a 
+    - to_tsh can be a callable object in which case calle simply it should retrun a
     timestamp
     """
 
@@ -170,11 +170,11 @@ def create_coins_histdata(
     _to_date = to_date if to_date is not None else now_as_ts()
     if fileins is None:
         _local_files = read_local_files_in_df(folder, file_ext, with_details=True)
-        stems_set = set(_local_files.loc[:,'stem']) if len(_local_files) else set()
+        stems_set = set(_local_files.loc[:, "stem"]) if len(_local_files) else set()
         try:
             new_coinids = set(get_coins_list(cg, update_local=False)) - stems_set
         except Exception as e:
-            print(f'folder={folder}, file_ext={file_ext}')
+            print(f"folder={folder}, file_ext={file_ext}")
             raise e
     else:
         new_coinids = [f.stem for f in fileins]
@@ -224,6 +224,7 @@ def renew_coins_histdata(
 def parse_ids_to_filename(
     coins_ids: Sequence[str], folder: Path, file_ext: str = ".pkl"
 ) -> Optional[List[Path]]:
+
     if coins_ids is not None:
         return sorted([folder.joinpath(f"{_id}{file_ext}") for _id in coins_ids])
     return None
@@ -246,13 +247,20 @@ def parse_args_id_to_ids(
         return None
     # should I make a specific currency folder?
 
-    coins_ids = (
-        get_coins_list(cg, update_local=False) if coins_ids_ is None else coins_ids_
-    )
     if args_coins.lower() == "all":
         # by default will check file on disk
         return None
-    #
+
+    coins_ids = (
+        get_coins_list(
+            cg,
+            token_list_fn=folder.joinpath("simple_token_list.csv"),
+            update_local=False,
+        )
+        if coins_ids_ is None
+        else coins_ids_
+    )
+
     _ids = []
     for arg_coin in args_coins.split(","):
         _ids += (
@@ -262,13 +270,16 @@ def parse_args_id_to_ids(
     # check the validity of the returned_ids
     _ids = set(_ids)
     unknown_ids = _ids - set(coins_ids.values)
-    assert len(unknown_ids) == 0, f"{_ids} and {coins_ids.values}, unknown_ids={unknown_ids}"
+
+    assert (
+        len(unknown_ids) == 0
+    ), f"{_ids} and {coins_ids.values}, unknown_ids={unknown_ids}"
 
     return _ids
 
 
 def parse_plage_of_coin(coins_ids: Series, arg_coin: str):
-    """ given a string in the form a-d get all coin in between in alphabetical order"""
+    """given a string in the form a-d get all coin in between in alphabetical order"""
     plage = arg_coin.split("-")
     assert len(plage) == 2, f"{arg_coin}"
 
@@ -287,9 +298,7 @@ def parse_plage_of_coin(coins_ids: Series, arg_coin: str):
 def parse_args():
     """Parse command line arguments"""
     # description, defaults and help
-    description = (
-        """Application to download and update information about coins listed by coingecko"""
-    )
+    description = """Application to download and update information about coins listed by coingecko"""
     action_dft = "UPDATE"
     action_help = (
         "UPDATE: check the coins on the disk update them with latest data. "
@@ -371,12 +380,15 @@ def main_prg():
     logger.setLevel(args.logLevel)
     logger.debug(f"Starting main programme with {args} ")
 
-    os.makedirs(args.folder, exist_ok=True)
+    folder = Path(args.folder)
+    os.makedirs(folder, exist_ok=True)
 
     cg = CoinGeckoAPI()
     # action_help = "UPDATE-ALL, CREATE-ALL, RENEW-ALL, UPDATE-COINS, CREATE-COINS, LIST-COINS"
-    folder = Path(args.folder)
-    coins_ids = parse_args_id_to_ids(cg, args.coins, folder, args.filefmt)
+
+    coins_ids = parse_args_id_to_ids(
+        cg, args.coins, folder, args.filefmt, coins_ids_=None
+    )
     fileins = parse_ids_to_filename(coins_ids, folder, args.filefmt)
 
     kwargs = {
@@ -402,15 +414,24 @@ def main_prg():
 
         while True:
             scheduler.run_pending()
-            sleep(1)
+            sleep(round(65 / 50, 1))  # free api 50 call / minutes max
 
     elif args.action.upper() == "CREATE":
+        # cannot create juste for specific coin ?
         create_coins_histdata(
-            cg, folder=folder, file_ext=args.filefmt, vs_currency=args.vsCurrency,
+            cg,
+            folder=folder,
+            file_ext=args.filefmt,
+            vs_currency=args.vsCurrency,
+            fileins=fileins,
         )
     elif args.action.upper() == "RENEW":
         renew_coins_histdata(
-            cg, folder=folder, file_ext=args.filefmt, vs_currency=args.vsCurrency,
+            cg,
+            folder=folder,
+            file_ext=args.filefmt,
+            vs_currency=args.vsCurrency,
+            fileins=fileins,
         )
 
     logger.info("***The End***")
