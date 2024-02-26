@@ -83,11 +83,8 @@ def get_coins_list(
     if update local, the token_list should be accessible
     """
 
-    def _logging_update(verb, seta, setb):
-        coins_diff = set(seta) - set(setb)
-        logger.info(f"{verb} {token_list_fn} {len(coins_diff)} coins.")
-
     coin_list = w_get_coins_list(cg, as_df=True)
+    
     if simple:
         coin_list = coin_list.where(
             coin_list.id.str.lower() == coin_list.name.str.lower()
@@ -96,9 +93,15 @@ def get_coins_list(
     if update_local:
 
         assert os.path.exists(token_list_fn), f"{token_list_fn} not accessible in {os.getcwdb()}.  You need to creat it"
+
         coin_list_id = read_csv(token_list_fn, index_col=0).id
 
         # logging some infos
+        def _logging_update(verb, seta, setb):
+            coins_diff = set(seta) - set(setb)
+            logger.info(f"{verb} {token_list_fn} {len(coins_diff)} coins.")
+
+
         if len(coin_list.id) > len(coin_list_id):
             _logging_update("Adding to ", coin_list.id, coin_list_id)
         elif len(coin_list.id) < len(coin_list_id):

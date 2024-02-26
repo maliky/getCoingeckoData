@@ -433,6 +433,15 @@ def main_prg():
             vs_currency=args.vsCurrency,
             fileins=fileins,
         )
+    elif args.action.upper() == "LIST-COINS":
+        token_list_fn = Path("./simple_token_list.csv")
+        logger.info(f"Saving new token list in {token_list_fn}")
+        get_coins_list(
+            cg,
+            token_list_fn=token_list_fn,
+            update_local=True,
+            simple=True,
+        )
 
     logger.info("***The End***")
     return None
